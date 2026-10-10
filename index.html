@@ -363,7 +363,6 @@
   let nextSpeedReset = null;
   let previousBallX = ball.x, previousBallY = ball.y;
 
-  // A skinny portrait wall made from individual breakable pixel bricks.
   const brickWall = {
     x: W / 2 - 10,
     y: H / 2 - 54,
@@ -383,7 +382,6 @@
   let running = false, paused = false, gameOver = false;
   let rallyHits = 0;
 
-  // One collectible power-up at a time. Collecting it temporarily enlarges that side's paddle.
   let powerUp = null;
   let leftPowerTimer = 0;
   let rightPowerTimer = 0;
@@ -395,8 +393,8 @@
   }
 
   function scheduleNextSpeedReset() {
-    // Use seconds so the timer is independent of the frame rate.
-    nextSpeedReset = 160 + Math.random() * 15;
+    // The wall appears every 55–65 seconds of active gameplay.
+    nextSpeedReset = 55 + Math.random() * 10;
   }
 
   function moveBrickWall() {
@@ -450,7 +448,6 @@
     scheduleNextPowerUp();
     nextSpeedReset = null;
 
-    // Always keep the wall hidden until its timer expires.
     brickWall.active = false;
     brickWall.bricks = [];
 
@@ -473,8 +470,9 @@
   function startGame() {
     if (gameOver) resetGame(false);
 
-    // Start a fresh 160–175 second countdown only when gameplay starts.
-    if (!running || nextSpeedReset === null) scheduleNextSpeedReset();
+    if (!running || nextSpeedReset === null) {
+      scheduleNextSpeedReset();
+    }
 
     running = true;
     paused = false;
@@ -685,10 +683,10 @@
       rightPowerTimer = Math.max(0, rightPowerTimer - dt);
     }
 
-    // dt is measured in 60-fps frames; convert it to seconds.
+    // Count down in seconds while the game is actively running.
     if (nextSpeedReset !== null) nextSpeedReset -= dt / 60;
 
-    // After each 160–175 seconds of active gameplay, reset speed and spawn a new wall.
+    // Every 55–65 seconds, reset the ball speed and spawn a fresh brick wall.
     if (nextSpeedReset !== null && nextSpeedReset <= 0) {
       const currentSpeed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
       const directionX = ball.vx / currentSpeed;
@@ -751,7 +749,6 @@
         ball.vy *= -1;
       }
 
-      // Remove a brick on every collision.
       const localCol = clamp(
         Math.floor((impactX - brickWall.x) / brickWall.brickW),
         0,
@@ -840,7 +837,6 @@
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, W, H);
 
-    // Subtle court grid
     ctx.save();
     ctx.strokeStyle = 'rgba(255,255,255,.035)';
     ctx.lineWidth = 1;
@@ -861,7 +857,6 @@
 
     ctx.restore();
 
-    // Center line and circle
     ctx.save();
     ctx.setLineDash([12, 14]);
     ctx.strokeStyle = 'rgba(255,255,255,.38)';
@@ -913,12 +908,9 @@
     ctx.shadowColor = '#fff';
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#fff';
-
-    // Smooth movement while keeping the ball square and pixel-like.
     ctx.fillRect(ball.x - 6, ball.y - 6, 12, 12);
     ctx.restore();
 
-    // Blue pixelated power-up with a white up arrow.
     if (powerUp) {
       const cx = Math.round(powerUp.x);
       const cy = Math.round(powerUp.y);
@@ -926,7 +918,6 @@
 
       ctx.save();
       ctx.shadowBlur = 0;
-
       ctx.fillStyle = '#168cff';
       ctx.fillRect(cx - 2 * p, cy - 4 * p, 4 * p, 8 * p);
       ctx.fillRect(cx - 3 * p, cy - 3 * p, 6 * p, 6 * p);
@@ -937,11 +928,9 @@
       ctx.fillRect(cx - 2 * p, cy - 2 * p, p, p);
       ctx.fillRect(cx + p, cy - 2 * p, p, p);
       ctx.fillRect(cx - p, cy - p, 2 * p, 4 * p);
-
       ctx.restore();
     }
 
-    // Tiny speed indicator
     ctx.fillStyle = 'rgba(218,225,255,.55)';
     ctx.font = '700 13px system-ui';
     ctx.textAlign = 'center';
@@ -1031,7 +1020,7 @@
     }
   });
 
-  // Start with no wall visible. Its first spawn timer begins when a game is started.
+  // The wall starts hidden and only appears after the timer expires.
   brickWall.active = false;
   brickWall.bricks = [];
   draw();
