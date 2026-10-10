@@ -14,63 +14,226 @@
     --text: #f5f7ff;
     --muted: #aaaaaa;
   }
+
   * { box-sizing: border-box; }
+
   body {
-    margin: 0; min-height: 100vh; color: var(--text);
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
     font-family: 'Courier New', Courier, monospace;
     background:
       radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.05), transparent 38%),
       radial-gradient(ellipse at 85% 80%, rgba(255,255,255,.035), transparent 40%),
       var(--bg);
-    display: grid; place-items: center; padding: 22px;
+    display: grid;
+    place-items: center;
+    padding: 22px;
   }
+
   .app { width: min(100%, 1000px); }
   header { text-align: center; margin-bottom: 18px; }
-  .eyebrow { color: var(--cyan); font-size: .78rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; }
-  h1 { margin: 5px 0; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.05; letter-spacing: .04em; }
+
+  .eyebrow {
+    color: var(--cyan);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 5px 0;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: .04em;
+  }
+
   h1 span { color: var(--pink); text-shadow: 3px 3px 0 #555; }
   .subtitle { color: var(--muted); margin: 10px 0 0; }
+
   .panel {
-    border: 2px solid #666; background: var(--panel);
-    border-radius: 3px; padding: 16px; box-shadow: 0 18px 60px rgba(0,0,0,.55);
+    border: 2px solid #666;
+    background: var(--panel);
+    border-radius: 3px;
+    padding: 16px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.55);
     backdrop-filter: none;
   }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-  .mode-group { display: flex; flex-wrap: wrap; gap: 8px; }
-  button, select {
-    color: var(--text); background: #191919; border: 1px solid #777;
-    border-radius: 2px; padding: 10px 14px; font: inherit; font-weight: 700;
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
   }
-  button { cursor: pointer; transition: transform .12s, border-color .12s, background .12s; }
+
+  .mode-group { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  button, select {
+    color: var(--text);
+    background: #191919;
+    border: 1px solid #777;
+    border-radius: 2px;
+    padding: 10px 14px;
+    font: inherit;
+    font-weight: 700;
+  }
+
+  button {
+    cursor: pointer;
+    transition: transform .12s, border-color .12s, background .12s;
+  }
+
   button:hover { transform: translateY(-1px); border-color: #fff; }
-  button:focus-visible, select:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
-  button.active { color: #000; background: var(--cyan); border-color: #fff; }
+
+  button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+  }
+
+  button.active {
+    color: #000;
+    background: var(--cyan);
+    border-color: #fff;
+  }
+
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .primary { color: #000; background: #fff; border-color: #fff; }
-  .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 10px 4px 14px; }
+
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 4px 14px;
+  }
+
   .score { text-align: center; }
-  .score .name { font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-  .score .number { font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+  .score .name {
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .score .number {
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
   #leftScore { color: var(--cyan); text-shadow: 2px 2px 0 #555; }
   #rightScore { color: var(--pink); text-shadow: 2px 2px 0 #444; }
-  .versus { color: #999; font-size: .8rem; font-weight: 900; letter-spacing: .12em; }
-  .game-wrap { position: relative; overflow: hidden; border: 2px solid #666; border-radius: 2px; background: #080808; }
-  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: auto; }
-  .overlay {
-    position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
-    text-align: center; background: rgba(6,9,27,.58); backdrop-filter: none;
+
+  .versus {
+    color: #999;
+    font-size: .8rem;
+    font-weight: 900;
+    letter-spacing: .12em;
   }
+
+  .game-wrap {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #666;
+    border-radius: 2px;
+    background: #080808;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    image-rendering: auto;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    text-align: center;
+    background: rgba(6,9,27,.58);
+    backdrop-filter: none;
+  }
+
   .overlay.hidden { display: none; }
   .overlay-card { max-width: 480px; }
-  .overlay h2 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin: 0 0 8px; }
+
+  .overlay h2 {
+    font-size: clamp(1.6rem, 5vw, 2.6rem);
+    margin: 0 0 8px;
+  }
+
   .overlay p { color: #ddd; margin: 0 0 16px; line-height: 1.5; }
-  .status { min-height: 25px; color: var(--yellow); text-align: center; margin: 12px 0 0; font-weight: 700; }
-  .powerup-note { color: #cfcfcf; text-align: center; font-size: .85rem; margin: 4px 0 0; }
-  .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-  .help { border-radius: 2px; background: rgba(255,255,255,.04); border: 1px solid #444; padding: 12px 14px; color: var(--muted); font-size: .9rem; line-height: 1.6; }
-  .help strong { color: var(--text); display: block; margin-bottom: 3px; }
-  kbd { display: inline-block; min-width: 25px; text-align: center; padding: 1px 6px; margin: 0 2px; color: var(--text); background: #222; border: 1px solid #888; border-radius: 2px; font: inherit; font-size: .82rem; }
-  .footer-note { text-align: center; color: #888; font-size: .8rem; margin: 14px 0 0; }
+
+  .status {
+    min-height: 25px;
+    color: var(--yellow);
+    text-align: center;
+    margin: 12px 0 0;
+    font-weight: 700;
+  }
+
+  .powerup-note {
+    color: #cfcfcf;
+    text-align: center;
+    font-size: .85rem;
+    margin: 4px 0 0;
+  }
+
+  .help-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .help {
+    border-radius: 2px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid #444;
+    padding: 12px 14px;
+    color: var(--muted);
+    font-size: .9rem;
+    line-height: 1.6;
+  }
+
+  .help strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 25px;
+    text-align: center;
+    padding: 1px 6px;
+    margin: 0 2px;
+    color: var(--text);
+    background: #222;
+    border: 1px solid #888;
+    border-radius: 2px;
+    font: inherit;
+    font-size: .82rem;
+  }
+
+  .footer-note {
+    text-align: center;
+    color: #888;
+    font-size: .8rem;
+    margin: 14px 0 0;
+  }
+
   @media (max-width: 620px) {
     body { padding: 12px; }
     .panel { padding: 10px; }
@@ -80,6 +243,7 @@
   }
 </style>
 </head>
+
 <body>
 <main class="app">
   <header>
@@ -94,6 +258,7 @@
         <button id="cpuMode" class="active" type="button">🤖 vs Computer</button>
         <button id="twoMode" type="button">👥 2 Players</button>
       </div>
+
       <div class="actions">
         <label for="difficulty" class="sr-only">Computer difficulty</label>
         <select id="difficulty" aria-label="Computer difficulty">
@@ -101,6 +266,7 @@
           <option value="medium" selected>Medium Bot</option>
           <option value="hard">Hard Bot</option>
         </select>
+
         <label for="winScore" class="sr-only">Points to win</label>
         <select id="winScore" aria-label="Points to win">
           <option value="5">First to 5</option>
@@ -108,6 +274,7 @@
           <option value="10">First to 10</option>
           <option value="15">First to 15</option>
         </select>
+
         <button id="startBtn" class="primary" type="button">▶ Start Game</button>
         <button id="pauseBtn" type="button">Ⅱ Pause</button>
         <button id="restartBtn" type="button">↻ Restart</button>
@@ -115,13 +282,22 @@
     </div>
 
     <div class="scoreboard" aria-live="polite">
-      <div class="score"><div id="leftName" class="name">Player 1</div><div id="leftScore" class="number">0</div></div>
+      <div class="score">
+        <div id="leftName" class="name">Player 1</div>
+        <div id="leftScore" class="number">0</div>
+      </div>
+
       <div class="versus">VS</div>
-      <div class="score"><div id="rightName" class="name">CPU</div><div id="rightScore" class="number">0</div></div>
+
+      <div class="score">
+        <div id="rightName" class="name">CPU</div>
+        <div id="rightScore" class="number">0</div>
+      </div>
     </div>
 
     <div class="game-wrap">
       <canvas id="game" width="960" height="540" aria-label="Pong playing field"></canvas>
+
       <div id="overlay" class="overlay">
         <div class="overlay-card">
           <h2 id="overlayTitle">Ready to rally?</h2>
@@ -130,14 +306,23 @@
         </div>
       </div>
     </div>
+
     <p id="status" class="status" aria-live="polite">Press Start Game when you're ready.</p>
     <p class="powerup-note">⬜ Power-up: collect the square to grow your paddle temporarily!</p>
 
     <div class="help-grid">
-      <div class="help"><strong>🔹 Player 1 — left paddle</strong><kbd>W</kbd> move up · <kbd>S</kbd> move down</div>
-      <div class="help"><strong>Right paddle</strong><span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span></div>
+      <div class="help">
+        <strong>🔹 Player 1 — left paddle</strong>
+        <kbd>W</kbd> move up · <kbd>S</kbd> move down
+      </div>
+
+      <div class="help">
+        <strong>Right paddle</strong>
+        <span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span>
+      </div>
     </div>
   </section>
+
   <p class="footer-note">Tip: keep your eye on the ball — each paddle hit makes the rally a little faster.</p>
 </main>
 
@@ -147,12 +332,24 @@
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   const $ = id => document.getElementById(id);
+
   const ui = {
-    cpuMode: $('cpuMode'), twoMode: $('twoMode'), winScore: $('winScore'), difficulty: $('difficulty'),
-    start: $('startBtn'), pause: $('pauseBtn'), restart: $('restartBtn'),
-    overlay: $('overlay'), overlayTitle: $('overlayTitle'), overlayText: $('overlayText'),
-    overlayStart: $('overlayStart'), status: $('status'), leftName: $('leftName'),
-    rightName: $('rightName'), leftScore: $('leftScore'), rightScore: $('rightScore'),
+    cpuMode: $('cpuMode'),
+    twoMode: $('twoMode'),
+    winScore: $('winScore'),
+    difficulty: $('difficulty'),
+    start: $('startBtn'),
+    pause: $('pauseBtn'),
+    restart: $('restartBtn'),
+    overlay: $('overlay'),
+    overlayTitle: $('overlayTitle'),
+    overlayText: $('overlayText'),
+    overlayStart: $('overlayStart'),
+    status: $('status'),
+    leftName: $('leftName'),
+    rightName: $('rightName'),
+    leftScore: $('leftScore'),
+    rightScore: $('rightScore'),
     rightControls: $('rightControls')
   };
 
@@ -163,7 +360,7 @@
   let rightY = H / 2 - paddle.h / 2;
   let ball = { x: W / 2, y: H / 2, vx: 3.6, vy: 1.6 };
   const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
-  let nextSpeedReset = 0;
+  let nextSpeedReset = null;
   let previousBallX = ball.x, previousBallY = ball.y;
 
   // A skinny portrait wall made from individual breakable pixel bricks.
@@ -198,7 +395,8 @@
   }
 
   function scheduleNextSpeedReset() {
-    nextSpeedReset = (160 + Math.random() * 15) * 60;
+    // Use seconds so the timer is independent of the frame rate.
+    nextSpeedReset = 160 + Math.random() * 15;
   }
 
   function moveBrickWall() {
@@ -250,7 +448,7 @@
     leftPowerTimer = 0;
     rightPowerTimer = 0;
     scheduleNextPowerUp();
-    scheduleNextSpeedReset();
+    nextSpeedReset = null;
 
     // Always keep the wall hidden until its timer expires.
     brickWall.active = false;
@@ -274,12 +472,16 @@
 
   function startGame() {
     if (gameOver) resetGame(false);
-    if (!running) scheduleNextSpeedReset();
+
+    // Start a fresh 160–175 second countdown only when gameplay starts.
+    if (!running || nextSpeedReset === null) scheduleNextSpeedReset();
+
     running = true;
     paused = false;
     gameOver = false;
     ui.pause.textContent = 'Ⅱ Pause';
     hideOverlay();
+
     ui.status.textContent = mode === 'cpu'
       ? 'You are Player 1 — good luck!'
       : 'Player 1 vs Player 2 — good luck!';
@@ -310,11 +512,13 @@
     running = false;
     paused = false;
     gameOver = true;
+
     showOverlay(
       `${winner} wins! 🎉`,
       `Final score: ${leftPoints} — ${rightPoints}. Fancy a rematch?`,
       '↻ Play Again'
     );
+
     ui.status.textContent = `${winner} wins the match!`;
   }
 
@@ -356,6 +560,7 @@
       if (keys.has('ArrowDown')) rightY += step;
     } else {
       const difficulty = ui.difficulty.value;
+
       const settings = {
         easy:   { speed: 3.0, error: 88, reaction: 0.72 },
         medium: { speed: 4.8, error: 34, reaction: 0.88 },
@@ -403,6 +608,7 @@
 
     const relative = (y - (paddleY + paddleHeight / 2)) /
       (paddleHeight / 2);
+
     const angle = relative * 1.0;
     const speed = Math.min(Math.hypot(vx, vy) * 1.045 + 0.15, 12.5);
     const nextVx = (isLeft ? 1 : -1) * Math.cos(angle) * speed;
@@ -474,14 +680,16 @@
     if (leftPowerTimer > 0) {
       leftPowerTimer = Math.max(0, leftPowerTimer - dt);
     }
+
     if (rightPowerTimer > 0) {
       rightPowerTimer = Math.max(0, rightPowerTimer - dt);
     }
 
-    nextSpeedReset -= dt;
+    // dt is measured in 60-fps frames; convert it to seconds.
+    if (nextSpeedReset !== null) nextSpeedReset -= dt / 60;
 
-    // This timer repeatedly resets the ball speed and respawns the wall.
-    if (nextSpeedReset <= 0) {
+    // After each 160–175 seconds of active gameplay, reset speed and spawn a new wall.
+    if (nextSpeedReset !== null && nextSpeedReset <= 0) {
       const currentSpeed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
       const directionX = ball.vx / currentSpeed;
       const directionY = ball.vy / currentSpeed;
@@ -495,6 +703,7 @@
 
     previousBallX = ball.x;
     previousBallY = ball.y;
+
     ball.x += ball.vx * dt;
     ball.y += ball.vy * dt;
 
@@ -502,10 +711,12 @@
       ball.y = ballRadius;
       ball.vy = Math.abs(ball.vy);
     }
+
     if (ball.y + ballRadius > H) {
       ball.y = H - ballRadius;
       ball.vy = -Math.abs(ball.vy);
     }
+
     const wallW = brickWall.cols * brickWall.brickW;
     const wallH = brickWall.rows * brickWall.brickH;
     const wallHasBricks = brickWall.active && brickWall.bricks.some(Boolean);
@@ -546,6 +757,7 @@
         0,
         brickWall.cols - 1
       );
+
       const localRow = clamp(
         Math.floor((impactY - brickWall.y) / brickWall.brickH),
         0,
@@ -646,6 +858,7 @@
       ctx.lineTo(W, y);
       ctx.stroke();
     }
+
     ctx.restore();
 
     // Center line and circle
@@ -749,8 +962,10 @@
 
   function setMode(nextMode) {
     mode = nextMode;
+
     ui.cpuMode.classList.toggle('active', mode === 'cpu');
     ui.twoMode.classList.toggle('active', mode === 'two');
+
     ui.rightName.textContent = mode === 'cpu'
       ? `CPU (${ui.difficulty.value})`
       : 'Player 2';
