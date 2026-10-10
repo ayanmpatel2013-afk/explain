@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,60 +17,167 @@
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; min-height: 100vh; color: var(--text);
+    margin: 0;
+    min-height: 100vh;
+    color: var(--text);
     font-family: 'Courier New', Courier, monospace;
     background:
       radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.05), transparent 38%),
       radial-gradient(ellipse at 85% 80%, rgba(255,255,255,.035), transparent 40%),
       var(--bg);
-    display: grid; place-items: center; padding: 22px;
+    display: grid;
+    place-items: center;
+    padding: 22px;
   }
   .app { width: min(100%, 1000px); }
   header { text-align: center; margin-bottom: 18px; }
-  .eyebrow { color: var(--cyan); font-size: .78rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; }
-  h1 { margin: 5px 0; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.05; letter-spacing: .04em; }
+  .eyebrow {
+    color: var(--cyan);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+  }
+  h1 {
+    margin: 5px 0;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: .04em;
+  }
   h1 span { color: var(--pink); text-shadow: 3px 3px 0 #555; }
   .subtitle { color: var(--muted); margin: 10px 0 0; }
   .panel {
-    border: 2px solid #666; background: var(--panel);
-    border-radius: 3px; padding: 16px; box-shadow: 0 18px 60px rgba(0,0,0,.55);
+    border: 2px solid #666;
+    background: var(--panel);
+    border-radius: 3px;
+    padding: 16px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.55);
     backdrop-filter: none;
   }
-  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
   .mode-group { display: flex; flex-wrap: wrap; gap: 8px; }
   button, select {
-    color: var(--text); background: #191919; border: 1px solid #777;
-    border-radius: 2px; padding: 10px 14px; font: inherit; font-weight: 700;
+    color: var(--text);
+    background: #191919;
+    border: 1px solid #777;
+    border-radius: 2px;
+    padding: 10px 14px;
+    font: inherit;
+    font-weight: 700;
   }
-  button { cursor: pointer; transition: transform .12s, border-color .12s, background .12s; }
+  button {
+    cursor: pointer;
+    transition: transform .12s, border-color .12s, background .12s;
+  }
   button:hover { transform: translateY(-1px); border-color: #fff; }
-  button:focus-visible, select:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+  button:focus-visible, select:focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 3px;
+  }
   button.active { color: #000; background: var(--cyan); border-color: #fff; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .primary { color: #000; background: #fff; border-color: #fff; }
-  .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 10px 4px 14px; }
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+    margin: 10px 4px 14px;
+  }
   .score { text-align: center; }
-  .score .name { font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-  .score .number { font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .score .name {
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .score .number {
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
   #leftScore { color: var(--cyan); text-shadow: 2px 2px 0 #555; }
   #rightScore { color: var(--pink); text-shadow: 2px 2px 0 #444; }
   .versus { color: #999; font-size: .8rem; font-weight: 900; letter-spacing: .12em; }
-  .game-wrap { position: relative; overflow: hidden; border: 2px solid #666; border-radius: 2px; background: #080808; }
-  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: auto; }
+  .game-wrap {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #666;
+    border-radius: 2px;
+    background: #080808;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    image-rendering: auto;
+  }
   .overlay {
-    position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
-    text-align: center; background: rgba(6,9,27,.58); backdrop-filter: none;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    text-align: center;
+    background: rgba(6,9,27,.58);
+    backdrop-filter: none;
   }
   .overlay.hidden { display: none; }
   .overlay-card { max-width: 480px; }
   .overlay h2 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin: 0 0 8px; }
   .overlay p { color: #ddd; margin: 0 0 16px; line-height: 1.5; }
-  .status { min-height: 25px; color: var(--yellow); text-align: center; margin: 12px 0 0; font-weight: 700; }
-  .powerup-note { color: #cfcfcf; text-align: center; font-size: .85rem; margin: 4px 0 0; }
-  .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
-  .help { border-radius: 2px; background: rgba(255,255,255,.04); border: 1px solid #444; padding: 12px 14px; color: var(--muted); font-size: .9rem; line-height: 1.6; }
+  .status {
+    min-height: 25px;
+    color: var(--yellow);
+    text-align: center;
+    margin: 12px 0 0;
+    font-weight: 700;
+  }
+  .powerup-note {
+    color: #cfcfcf;
+    text-align: center;
+    font-size: .85rem;
+    margin: 4px 0 0;
+  }
+  .help-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .help {
+    border-radius: 2px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid #444;
+    padding: 12px 14px;
+    color: var(--muted);
+    font-size: .9rem;
+    line-height: 1.6;
+  }
   .help strong { color: var(--text); display: block; margin-bottom: 3px; }
-  kbd { display: inline-block; min-width: 25px; text-align: center; padding: 1px 6px; margin: 0 2px; color: var(--text); background: #222; border: 1px solid #888; border-radius: 2px; font: inherit; font-size: .82rem; }
+  kbd {
+    display: inline-block;
+    min-width: 25px;
+    text-align: center;
+    padding: 1px 6px;
+    margin: 0 2px;
+    color: var(--text);
+    background: #222;
+    border: 1px solid #888;
+    border-radius: 2px;
+    font: inherit;
+    font-size: .82rem;
+  }
   .footer-note { text-align: center; color: #888; font-size: .8rem; margin: 14px 0 0; }
   @media (max-width: 620px) {
     body { padding: 12px; }
@@ -115,9 +223,15 @@
     </div>
 
     <div class="scoreboard" aria-live="polite">
-      <div class="score"><div id="leftName" class="name">Player 1</div><div id="leftScore" class="number">0</div></div>
+      <div class="score">
+        <div id="leftName" class="name">Player 1</div>
+        <div id="leftScore" class="number">0</div>
+      </div>
       <div class="versus">VS</div>
-      <div class="score"><div id="rightName" class="name">CPU</div><div id="rightScore" class="number">0</div></div>
+      <div class="score">
+        <div id="rightName" class="name">CPU</div>
+        <div id="rightScore" class="number">0</div>
+      </div>
     </div>
 
     <div class="game-wrap">
@@ -134,8 +248,14 @@
     <p class="powerup-note">⬜ Power-up: collect the square to grow your paddle temporarily!</p>
 
     <div class="help-grid">
-      <div class="help"><strong>🔹 Player 1 — left paddle</strong><kbd>W</kbd> move up · <kbd>S</kbd> move down</div>
-      <div class="help"><strong>Right paddle</strong><span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span></div>
+      <div class="help">
+        <strong>🔹 Player 1 — left paddle</strong>
+        <kbd>W</kbd> move up · <kbd>S</kbd> move down
+      </div>
+      <div class="help">
+        <strong>Right paddle</strong>
+        <span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span>
+      </div>
     </div>
   </section>
   <p class="footer-note">Tip: keep your eye on the ball — each paddle hit makes the rally a little faster.</p>
@@ -162,20 +282,51 @@
   let leftY = H / 2 - paddle.h / 2;
   let rightY = H / 2 - paddle.h / 2;
   let ball = { x: W / 2, y: H / 2, vx: 3.6, vy: 1.6 };
+  const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
+  let nextSpeedReset = (160 + Math.random() * 15) * 60;
+  let previousBallX = ball.x, previousBallY = ball.y;
+
+  // Skinny portrait wall made from individual breakable pixel bricks.
+  const brickWall = {
+    x: W / 2 - 10,
+    y: H / 2 - 54,
+    cols: 2,
+    rows: 9,
+    brickW: 10,
+    brickH: 12,
+    bricks: []
+  };
+
+  function rebuildBrickWall() {
+    brickWall.bricks = Array(brickWall.cols * brickWall.rows).fill(true);
+  }
+  rebuildBrickWall();
+
   let leftPoints = 0, rightPoints = 0;
   let running = false, paused = false, gameOver = false;
   let rallyHits = 0;
-  // One collectible power-up at a time. Collecting it temporarily enlarges that side's paddle.
   let powerUp = null;
   let leftPowerTimer = 0;
   let rightPowerTimer = 0;
-  let nextPowerUpSpawn = 25 * 60; // start with a random 20–30 second delay
-  const POWER_DURATION = 600; // about 10 seconds at 60 FPS
+  let nextPowerUpSpawn = 25 * 60;
+  const POWER_DURATION = 600;
 
   function scheduleNextPowerUp() {
-    // Game updates use roughly 60 frames per second, so 20–30 seconds is 1200–1800 frames.
     nextPowerUpSpawn = (20 + Math.random() * 10) * 60;
   }
+
+  function scheduleNextSpeedReset() {
+    nextSpeedReset = (160 + Math.random() * 15) * 60;
+  }
+
+  function moveBrickWall() {
+    brickWall.x = W / 2 - brickWall.cols * brickWall.brickW / 2 +
+      (Math.random() * 180 - 90);
+    brickWall.y = 65 + Math.random() *
+      (H - 130 - brickWall.rows * brickWall.brickH);
+    rebuildBrickWall();
+  }
+
   const keys = new Set();
   let lastTime = 0;
   let animationId = 0;
@@ -193,38 +344,59 @@
     ui.overlayStart.textContent = buttonText;
     ui.overlay.classList.remove('hidden');
   }
-  function hideOverlay() { ui.overlay.classList.add('hidden'); }
+
+  function hideOverlay() {
+    ui.overlay.classList.add('hidden');
+  }
 
   function resetBall(direction = Math.random() < .5 ? -1 : 1) {
-    ball.x = W / 2; ball.y = H / 2;
+    ball.x = W / 2;
+    ball.y = H / 2;
     ball.vx = 3.6 * direction;
     ball.vy = (Math.random() * 2.4 - 1.2) || 0.9;
     rallyHits = 0;
   }
 
   function resetGame(shouldStart = false) {
-    leftPoints = 0; rightPoints = 0;
+    leftPoints = 0;
+    rightPoints = 0;
     leftY = rightY = H / 2 - paddle.h / 2;
-    running = false; paused = false; gameOver = false;
-    powerUp = null; leftPowerTimer = 0; rightPowerTimer = 0;
+    running = false;
+    paused = false;
+    gameOver = false;
+    powerUp = null;
+    leftPowerTimer = 0;
+    rightPowerTimer = 0;
     scheduleNextPowerUp();
+    scheduleNextSpeedReset();
+    moveBrickWall();
     ui.pause.textContent = 'Ⅱ Pause';
     resetBall();
     updateScore();
     draw();
-    if (shouldStart) startGame();
-    else {
-      showOverlay('Ready to rally?', `Mode: ${mode === 'cpu' ? 'Player vs Computer' : '2 Players'}. First to ${ui.winScore.value} points wins!`);
+
+    if (shouldStart) {
+      startGame();
+    } else {
+      showOverlay(
+        'Ready to rally?',
+        `Mode: ${mode === 'cpu' ? 'Player vs Computer' : '2 Players'}. First to ${ui.winScore.value} points wins!`
+      );
       ui.status.textContent = 'Press Start Game when you’re ready.';
     }
   }
 
   function startGame() {
     if (gameOver) resetGame(false);
-    running = true; paused = false; gameOver = false;
+    running = true;
+    paused = false;
+    gameOver = false;
     ui.pause.textContent = 'Ⅱ Pause';
     hideOverlay();
-    ui.status.textContent = mode === 'cpu' ? 'You are Player 1 — good luck!' : 'Player 1 vs Player 2 — good luck!';
+    ui.status.textContent = mode === 'cpu'
+      ? 'You are Player 1 — good luck!'
+      : 'Player 1 vs Player 2 — good luck!';
+
     if (!animationId) {
       lastTime = performance.now();
       animationId = requestAnimationFrame(loop);
@@ -235,6 +407,7 @@
     if (!running || gameOver) return;
     paused = !paused;
     ui.pause.textContent = paused ? '▶ Resume' : 'Ⅱ Pause';
+
     if (paused) {
       showOverlay('Paused', 'Take a breather. Your score is safe.', '▶ Resume');
       ui.status.textContent = 'Game paused.';
@@ -246,20 +419,37 @@
   }
 
   function finishGame(winner) {
-    running = false; paused = false; gameOver = true;
-    showOverlay(`${winner} wins! 🎉`, `Final score: ${leftPoints} — ${rightPoints}. Fancy a rematch?`, '↻ Play Again');
+    running = false;
+    paused = false;
+    gameOver = true;
+    showOverlay(
+      `${winner} wins! 🎉`,
+      `Final score: ${leftPoints} — ${rightPoints}. Fancy a rematch?`,
+      '↻ Play Again'
+    );
     ui.status.textContent = `${winner} wins the match!`;
   }
 
   function scorePoint(side) {
-    if (side === 'left') leftPoints++; else rightPoints++;
+    if (side === 'left') leftPoints++;
+    else rightPoints++;
+
     updateScore();
     const target = Number(ui.winScore.value);
+
     if (leftPoints >= target || rightPoints >= target) {
-      finishGame(leftPoints > rightPoints ? 'Player 1' : (mode === 'cpu' ? 'Computer' : 'Player 2'));
+      finishGame(leftPoints > rightPoints
+        ? 'Player 1'
+        : (mode === 'cpu' ? 'Computer' : 'Player 2'));
       return;
     }
-    ui.status.textContent = `${side === 'left' ? (mode === 'cpu' ? 'Player 1' : 'Player 1') : (mode === 'cpu' ? 'Computer' : 'Player 2')} scored!`;
+
+    ui.status.textContent = `${
+      side === 'left'
+        ? (mode === 'cpu' ? 'Player 1' : 'Player 1')
+        : (mode === 'cpu' ? 'Computer' : 'Player 2')
+    } scored!`;
+
     resetBall(side === 'left' ? 1 : -1);
   }
 
@@ -267,57 +457,78 @@
     const step = paddle.speed * dt;
     const leftHeight = leftPowerTimer > 0 ? 150 : 108;
     const rightHeight = rightPowerTimer > 0 ? 150 : 108;
+
     if (keys.has('w') || keys.has('W')) leftY -= step;
     if (keys.has('s') || keys.has('S')) leftY += step;
+
     if (mode === 'two') {
       if (keys.has('ArrowUp')) rightY -= step;
       if (keys.has('ArrowDown')) rightY += step;
     } else {
-      // Difficulty changes how quickly and accurately the computer follows the ball.
       const difficulty = ui.difficulty.value;
       const settings = {
         easy:   { speed: 3.0, error: 88, reaction: 0.72 },
         medium: { speed: 4.8, error: 34, reaction: 0.88 },
-        hard:   { speed: 6.8, error: 7,  reaction: 1.00 }
+        hard:   { speed: 6.8, error: 7, reaction: 1.00 }
       }[difficulty];
-      const wobble = Math.sin(performance.now() / (difficulty === 'easy' ? 190 : 320)) * settings.error * 0.22;
-      const prediction = ball.y + ball.vy * (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
+
+      const wobble = Math.sin(
+        performance.now() / (difficulty === 'easy' ? 190 : 320)
+      ) * settings.error * 0.22;
+      const prediction = ball.y +
+        ball.vy * (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
       const target = prediction - paddle.h / 2 + wobble;
       const diff = target - rightY;
       const cpuSpeed = settings.speed * dt;
-      if (Math.abs(diff) > 5) rightY += Math.sign(diff) * Math.min(Math.abs(diff) * settings.reaction, cpuSpeed);
+
+      if (Math.abs(diff) > 5) {
+        rightY += Math.sign(diff) *
+          Math.min(Math.abs(diff) * settings.reaction, cpuSpeed);
+      }
     }
+
     leftY = clamp(leftY, 0, H - leftHeight);
     rightY = clamp(rightY, 0, H - rightHeight);
   }
 
   function collidePaddle(x, y, vx, vy, paddleX, paddleY, isLeft) {
-    const paddleHeight = (isLeft ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
-    const overlapsY = y + ballRadius >= paddleY && y - ballRadius <= paddleY + paddleHeight;
-    const overlapsX = isLeft ? x - ballRadius <= paddleX + paddle.w && x > paddleX
-                             : x + ballRadius >= paddleX && x < paddleX + paddle.w;
-    if (!overlapsX || !overlapsY || (isLeft ? vx >= 0 : vx <= 0)) return { vx, vy };
+    const paddleHeight =
+      (isLeft ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
+    const overlapsY =
+      y + ballRadius >= paddleY && y - ballRadius <= paddleY + paddleHeight;
+    const overlapsX = isLeft
+      ? x - ballRadius <= paddleX + paddle.w && x > paddleX
+      : x + ballRadius >= paddleX && x < paddleX + paddle.w;
 
-    const relative = (y - (paddleY + paddleHeight / 2)) / (paddleHeight / 2);
+    if (!overlapsX || !overlapsY || (isLeft ? vx >= 0 : vx <= 0)) {
+      return { vx, vy };
+    }
+
+    const relative =
+      (y - (paddleY + paddleHeight / 2)) / (paddleHeight / 2);
     const angle = relative * 1.0;
     const speed = Math.min(Math.hypot(vx, vy) * 1.045 + 0.15, 12.5);
     const nextVx = (isLeft ? 1 : -1) * Math.cos(angle) * speed;
     const nextVy = Math.sin(angle) * speed;
     rallyHits++;
+
     return { vx: nextVx, vy: nextVy };
   }
 
   function spawnPowerUp() {
-    // In CPU mode it appears on the player's half. In 2-player mode either half is possible.
-    const side = mode === 'cpu' ? 'left' : (Math.random() < 0.5 ? 'left' : 'right');
+    const side = mode === 'cpu'
+      ? 'left'
+      : (Math.random() < 0.5 ? 'left' : 'right');
     const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
+
     powerUp = {
       x: paddleX + paddle.w / 2,
       y: 65 + Math.random() * (H - 130),
       side,
       size: 20,
-      life: 900 // disappear after roughly 15 seconds if not collected
+      life: 900
     };
+
     ui.status.textContent = side === 'left'
       ? 'Power-up spawned on the left side! Touch the square with your paddle.'
       : 'Power-up spawned on the right side! Touch the square with your paddle.';
@@ -326,56 +537,183 @@
   function collectPowerUp(side) {
     if (side === 'left') leftPowerTimer = POWER_DURATION;
     else rightPowerTimer = POWER_DURATION;
+
     powerUp = null;
     scheduleNextPowerUp();
+
     ui.status.textContent = side === 'left'
       ? 'Player 1 collected a power-up! Your paddle is bigger for a short time!'
-      : (mode === 'cpu' ? 'Computer collected a power-up!' : 'Player 2 collected a power-up! Your paddle is bigger for a short time!');
+      : (mode === 'cpu'
+        ? 'Computer collected a power-up!'
+        : 'Player 2 collected a power-up! Your paddle is bigger for a short time!');
   }
 
   function checkPowerUpCollection() {
     if (!powerUp) return;
-    const leftX = 34, rightX = W - 34 - paddle.w;
+
+    const leftX = 34;
+    const rightX = W - 34 - paddle.w;
+
     const hitLeft = powerUp.side === 'left' &&
-      powerUp.x >= leftX - 8 && powerUp.x <= leftX + paddle.w + 8 &&
-      powerUp.y >= leftY - 8 && powerUp.y <= leftY + (leftPowerTimer > 0 ? 150 : 108) + 8;
+      powerUp.x >= leftX - 8 &&
+      powerUp.x <= leftX + paddle.w + 8 &&
+      powerUp.y >= leftY - 8 &&
+      powerUp.y <= leftY + (leftPowerTimer > 0 ? 150 : 108) + 8;
+
     const hitRight = powerUp.side === 'right' &&
-      powerUp.x >= rightX - 8 && powerUp.x <= rightX + paddle.w + 8 &&
-      powerUp.y >= rightY - 8 && powerUp.y <= rightY + (rightPowerTimer > 0 ? 150 : 108) + 8;
+      powerUp.x >= rightX - 8 &&
+      powerUp.x <= rightX + paddle.w + 8 &&
+      powerUp.y >= rightY - 8 &&
+      powerUp.y <= rightY + (rightPowerTimer > 0 ? 150 : 108) + 8;
+
     if (hitLeft) collectPowerUp('left');
     else if (hitRight) collectPowerUp('right');
   }
 
   function update(dt) {
     movePaddles(dt);
-    if (leftPowerTimer > 0) leftPowerTimer = Math.max(0, leftPowerTimer - dt);
-    if (rightPowerTimer > 0) rightPowerTimer = Math.max(0, rightPowerTimer - dt);
-    const leftHeight = leftPowerTimer > 0 ? 150 : 108;
-    const rightHeight = rightPowerTimer > 0 ? 150 : 108;
+
+    if (leftPowerTimer > 0) {
+      leftPowerTimer = Math.max(0, leftPowerTimer - dt);
+    }
+    if (rightPowerTimer > 0) {
+      rightPowerTimer = Math.max(0, rightPowerTimer - dt);
+    }
+
+    nextSpeedReset -= dt;
+
+    if (nextSpeedReset <= 0) {
+      const currentSpeed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
+      const directionX = ball.vx / currentSpeed;
+      const directionY = ball.vy / currentSpeed;
+
+      ball.vx = directionX * ORIGINAL_BALL_SPEED;
+      ball.vy = directionY * ORIGINAL_BALL_SPEED;
+
+      moveBrickWall();
+      scheduleNextSpeedReset();
+      ui.status.textContent = 'Ball speed reset! The brick wall has moved!';
+    }
+
+    previousBallX = ball.x;
+    previousBallY = ball.y;
     ball.x += ball.vx * dt;
     ball.y += ball.vy * dt;
 
-    if (ball.y - ballRadius < 0) { ball.y = ballRadius; ball.vy = Math.abs(ball.vy); }
-    if (ball.y + ballRadius > H) { ball.y = H - ballRadius; ball.vy = -Math.abs(ball.vy); }
+    if (ball.y - ballRadius < 0) {
+      ball.y = ballRadius;
+      ball.vy = Math.abs(ball.vy);
+    }
+    if (ball.y + ballRadius > H) {
+      ball.y = H - ballRadius;
+      ball.vy = -Math.abs(ball.vy);
+    }
 
-    const leftX = 34, rightX = W - 34 - paddle.w;
+    // Brick-wall collision.
+    const wallW = brickWall.cols * brickWall.brickW;
+    const wallH = brickWall.rows * brickWall.brickH;
+    const wallHasBricks = brickWall.bricks.some(Boolean);
+
+    const overlapsWall = wallHasBricks &&
+      ball.x + ballRadius > brickWall.x &&
+      ball.x - ballRadius < brickWall.x + wallW &&
+      ball.y + ballRadius > brickWall.y &&
+      ball.y - ballRadius < brickWall.y + wallH;
+
+    if (overlapsWall) {
+      const impactX = ball.x;
+      const impactY = ball.y;
+
+      const cameFromLeft = previousBallX + ballRadius <= brickWall.x;
+      const cameFromRight = previousBallX - ballRadius >= brickWall.x + wallW;
+      const cameFromTop = previousBallY + ballRadius <= brickWall.y;
+      const cameFromBottom = previousBallY - ballRadius >= brickWall.y + wallH;
+
+      if (cameFromLeft || cameFromRight) {
+        ball.vx *= -1;
+        ball.x = cameFromLeft
+          ? brickWall.x - ballRadius
+          : brickWall.x + wallW + ballRadius;
+      } else if (cameFromTop || cameFromBottom) {
+        ball.vy *= -1;
+        ball.y = cameFromTop
+          ? brickWall.y - ballRadius
+          : brickWall.y + wallH + ballRadius;
+      } else {
+        ball.vx *= -1;
+        ball.vy *= -1;
+      }
+
+      // Break one brick every time the ball bounces off the wall.
+      const localCol = clamp(
+        Math.floor((impactX - brickWall.x) / brickWall.brickW),
+        0,
+        brickWall.cols - 1
+      );
+      const localRow = clamp(
+        Math.floor((impactY - brickWall.y) / brickWall.brickH),
+        0,
+        brickWall.rows - 1
+      );
+
+      let brickIndex = localRow * brickWall.cols + localCol;
+
+      if (!brickWall.bricks[brickIndex]) {
+        let bestDistance = Infinity;
+
+        for (let i = 0; i < brickWall.bricks.length; i++) {
+          if (!brickWall.bricks[i]) continue;
+
+          const col = i % brickWall.cols;
+          const row = Math.floor(i / brickWall.cols);
+          const cx = brickWall.x + col * brickWall.brickW + brickWall.brickW / 2;
+          const cy = brickWall.y + row * brickWall.brickH + brickWall.brickH / 2;
+          const distance = Math.hypot(ball.x - cx, ball.y - cy);
+
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            brickIndex = i;
+          }
+        }
+      }
+
+      brickWall.bricks[brickIndex] = false;
+
+      if (!brickWall.bricks.some(Boolean)) {
+        ui.status.textContent =
+          'The brick wall has crumbled! It will rebuild when it moves.';
+      } else {
+        ui.status.textContent =
+          'The ball bounced off the wall and broke a brick!';
+      }
+    }
+
+    const leftX = 34;
+    const rightX = W - 34 - paddle.w;
+
     let hit = collidePaddle(ball.x, ball.y, ball.vx, ball.vy, leftX, leftY, true);
-    ball.vx = hit.vx; ball.vy = hit.vy;
+    ball.vx = hit.vx;
+    ball.vy = hit.vy;
+
     hit = collidePaddle(ball.x, ball.y, ball.vx, ball.vy, rightX, rightY, false);
-    ball.vx = hit.vx; ball.vy = hit.vy;
+    ball.vx = hit.vx;
+    ball.vy = hit.vy;
 
     if (powerUp) {
       powerUp.life -= dt;
+
       if (powerUp.life <= 0) {
         powerUp = null;
         scheduleNextPowerUp();
       }
     } else {
       nextPowerUpSpawn -= dt;
+
       if (nextPowerUpSpawn <= 0) {
         spawnPowerUp();
       }
     }
+
     checkPowerUpCollection();
 
     if (ball.x + ballRadius < 0) scorePoint('right');
@@ -384,7 +722,8 @@
 
   function drawRoundedRect(x, y, w, h, r, color, glow) {
     ctx.save();
-    ctx.shadowColor = glow || color; ctx.shadowBlur = 0;
+    ctx.shadowColor = glow || color;
+    ctx.shadowBlur = 0;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.roundRect(x, y, w, h, r);
@@ -394,63 +733,108 @@
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#080808'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(0, 0, W, H);
 
-    // Subtle court grid
+    // Subtle court grid.
     ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,.035)'; ctx.lineWidth = 1;
-    for (let x = 0; x < W; x += 48) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
-    for (let y = 0; y < H; y += 48) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(255,255,255,.035)';
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < W; x += 48) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 48) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
     ctx.restore();
 
-    // Center line and circle
+    // Center line and circle.
     ctx.save();
-    ctx.setLineDash([12, 14]); ctx.strokeStyle = 'rgba(255,255,255,.38)'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(W / 2, 24); ctx.lineTo(W / 2, H - 24); ctx.stroke();
-    ctx.setLineDash([]); ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(W / 2, H / 2, 82, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([12, 14]);
+    ctx.strokeStyle = 'rgba(255,255,255,.38)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(W / 2, 24);
+    ctx.lineTo(W / 2, H - 24);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(W / 2, H / 2, 82, 0, Math.PI * 2);
+    ctx.stroke();
     ctx.restore();
 
-    drawRoundedRect(34, leftY, paddle.w, leftPowerTimer > 0 ? 150 : 108, 0, '#f5f5f5', '#f5f5f5');
-    drawRoundedRect(W - 34 - paddle.w, rightY, paddle.w, rightPowerTimer > 0 ? 150 : 108, 0, '#bdbdbd', '#bdbdbd');
+    // Reddish-orange portrait brick wall.
+    const brickColors = ['#e85b32', '#d94a28', '#f06a3d'];
+
+    for (let row = 0; row < brickWall.rows; row++) {
+      for (let col = 0; col < brickWall.cols; col++) {
+        const index = row * brickWall.cols + col;
+        if (!brickWall.bricks[index]) continue;
+
+        const bx = brickWall.x + col * brickWall.brickW;
+        const by = brickWall.y + row * brickWall.brickH;
+
+        ctx.fillStyle = brickColors[(row + col) % brickColors.length];
+        ctx.fillRect(bx, by, brickWall.brickW - 1, brickWall.brickH - 1);
+
+        ctx.fillStyle = 'rgba(255,190,150,.28)';
+        ctx.fillRect(bx, by, brickWall.brickW - 1, 2);
+      }
+    }
+
+    drawRoundedRect(
+      34, leftY, paddle.w,
+      leftPowerTimer > 0 ? 150 : 108,
+      0, '#f5f5f5', '#f5f5f5'
+    );
+
+    drawRoundedRect(
+      W - 34 - paddle.w, rightY, paddle.w,
+      rightPowerTimer > 0 ? 150 : 108,
+      0, '#bdbdbd', '#bdbdbd'
+    );
 
     ctx.save();
-    ctx.shadowColor = '#fff'; ctx.shadowBlur = 0;
+    ctx.shadowColor = '#fff';
+    ctx.shadowBlur = 0;
     ctx.fillStyle = '#fff';
-    // Keep the ball's exact floating-point position for smooth movement.
-    // It stays square for the pixel-arcade look, without snapping between pixels.
     ctx.fillRect(ball.x - 6, ball.y - 6, 12, 12);
     ctx.restore();
 
-    // Collectible power-up: outlined white square with a plus symbol.
+    // Blue pixelated power-up with a white up arrow.
     if (powerUp) {
-        // Blue pixelated circle with a white up arrow.
-        const cx = Math.round(powerUp.x);
-        const cy = Math.round(powerUp.y);
-        const p = 4; // chunky pixel size
+      const cx = Math.round(powerUp.x);
+      const cy = Math.round(powerUp.y);
+      const p = 4;
 
-        ctx.save();
-        ctx.shadowBlur = 0;
+      ctx.save();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#168cff';
+      ctx.fillRect(cx - 2*p, cy - 4*p, 4*p, 8*p);
+      ctx.fillRect(cx - 3*p, cy - 3*p, 6*p, 6*p);
+      ctx.fillRect(cx - 4*p, cy - 2*p, 8*p, 4*p);
 
-        // Stepped 8-bit circle silhouette.
-        ctx.fillStyle = '#168cff';
-        ctx.fillRect(cx - 2*p, cy - 4*p, 4*p, 8*p);
-        ctx.fillRect(cx - 3*p, cy - 3*p, 6*p, 6*p);
-        ctx.fillRect(cx - 4*p, cy - 2*p, 8*p, 4*p);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - p, cy - 3*p, 2*p, 2*p);
+      ctx.fillRect(cx - 2*p, cy - 2*p, p, p);
+      ctx.fillRect(cx + p, cy - 2*p, p, p);
+      ctx.fillRect(cx - p, cy - p, 2*p, 4*p);
+      ctx.restore();
+    }
 
-        // White upward arrow made from square pixels.
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(cx - p, cy - 3*p, 2*p, 2*p);
-        ctx.fillRect(cx - 2*p, cy - 2*p, p, p);
-        ctx.fillRect(cx + p, cy - 2*p, p, p);
-        ctx.fillRect(cx - p, cy - p, 2*p, 4*p);
-
-        ctx.restore();
-      }
-
-    // Tiny speed indicator
     ctx.fillStyle = 'rgba(218,225,255,.55)';
-    ctx.font = '700 13px system-ui'; ctx.textAlign = 'center';
+    ctx.font = '700 13px system-ui';
+    ctx.textAlign = 'center';
     ctx.fillText(`RALLY ${rallyHits}`, W / 2, H - 16);
   }
 
@@ -458,6 +842,7 @@
     animationId = requestAnimationFrame(loop);
     const dt = Math.min((now - lastTime) / 16.667, 2);
     lastTime = now;
+
     if (running && !paused && !gameOver) update(dt);
     draw();
   }
@@ -466,50 +851,65 @@
     mode = nextMode;
     ui.cpuMode.classList.toggle('active', mode === 'cpu');
     ui.twoMode.classList.toggle('active', mode === 'two');
-    ui.rightName.textContent = mode === 'cpu' ? `CPU (${ui.difficulty.value})` : 'Player 2';
+    ui.rightName.textContent = mode === 'cpu'
+      ? `CPU (${ui.difficulty.value})`
+      : 'Player 2';
     ui.difficulty.disabled = mode !== 'cpu';
+
     ui.rightControls.innerHTML = mode === 'cpu'
       ? '<kbd>↑</kbd> / <kbd>↓</kbd> controls are handled by the computer'
       : '<kbd>↑</kbd> move up · <kbd>↓</kbd> move down';
+
     resetGame(false);
   }
 
   document.addEventListener('keydown', event => {
     const key = event.key;
     if (['ArrowUp', 'ArrowDown', ' '].includes(key)) event.preventDefault();
+
     keys.add(key);
+
     if (key === ' ' && !event.repeat) {
       if (gameOver || !running) startGame();
       else pauseGame();
     }
     if (key === 'Enter' && !running) startGame();
   });
+
   document.addEventListener('keyup', event => keys.delete(event.key));
   window.addEventListener('blur', () => keys.clear());
 
   ui.cpuMode.addEventListener('click', () => setMode('cpu'));
   ui.twoMode.addEventListener('click', () => setMode('two'));
   ui.start.addEventListener('click', startGame);
+
   ui.overlayStart.addEventListener('click', () => {
     if (paused && running) pauseGame();
     else if (gameOver) resetGame(true);
     else startGame();
   });
+
   ui.pause.addEventListener('click', pauseGame);
   ui.restart.addEventListener('click', () => resetGame(false));
+
   ui.winScore.addEventListener('change', () => {
-    if (!gameOver) ui.status.textContent = `First to ${ui.winScore.value} points wins.`;
-    if (!running) showOverlay('Ready to rally?', `First to ${ui.winScore.value} points wins!`);
+    if (!gameOver) {
+      ui.status.textContent = `First to ${ui.winScore.value} points wins.`;
+    }
+    if (!running) {
+      showOverlay('Ready to rally?', `First to ${ui.winScore.value} points wins!`);
+    }
   });
+
   ui.difficulty.addEventListener('change', () => {
     const labels = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+
     if (mode === 'cpu') {
       ui.rightName.textContent = `CPU (${ui.difficulty.value})`;
       ui.status.textContent = `${labels[ui.difficulty.value]} computer difficulty selected.`;
     }
   });
 
-  // Draw an attractive static court before the first animation frame.
   draw();
   animationId = requestAnimationFrame(loop);
 })();
