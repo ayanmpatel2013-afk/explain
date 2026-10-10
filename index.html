@@ -32,7 +32,11 @@
   }
 
   .app { width: min(100%, 1000px); }
-  header { text-align: center; margin-bottom: 18px; }
+
+  header {
+    text-align: center;
+    margin-bottom: 18px;
+  }
 
   .eyebrow {
     color: var(--cyan);
@@ -49,8 +53,15 @@
     letter-spacing: .04em;
   }
 
-  h1 span { color: var(--pink); text-shadow: 3px 3px 0 #555; }
-  .subtitle { color: var(--muted); margin: 10px 0 0; }
+  h1 span {
+    color: var(--pink);
+    text-shadow: 3px 3px 0 #555;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    margin: 10px 0 0;
+  }
 
   .panel {
     border: 2px solid #666;
@@ -70,7 +81,11 @@
     margin-bottom: 14px;
   }
 
-  .mode-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mode-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 
   button, select {
     color: var(--text);
@@ -87,7 +102,10 @@
     transition: transform .12s, border-color .12s, background .12s;
   }
 
-  button:hover { transform: translateY(-1px); border-color: #fff; }
+  button:hover {
+    transform: translateY(-1px);
+    border-color: #fff;
+  }
 
   button:focus-visible, select:focus-visible {
     outline: 2px solid var(--yellow);
@@ -100,8 +118,17 @@
     border-color: #fff;
   }
 
-  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
-  .primary { color: #000; background: #fff; border-color: #fff; }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .primary {
+    color: #000;
+    background: #fff;
+    border-color: #fff;
+  }
 
   .scoreboard {
     display: grid;
@@ -128,8 +155,15 @@
     font-variant-numeric: tabular-nums;
   }
 
-  #leftScore { color: var(--cyan); text-shadow: 2px 2px 0 #555; }
-  #rightScore { color: var(--pink); text-shadow: 2px 2px 0 #444; }
+  #leftScore {
+    color: var(--cyan);
+    text-shadow: 2px 2px 0 #555;
+  }
+
+  #rightScore {
+    color: var(--pink);
+    text-shadow: 2px 2px 0 #444;
+  }
 
   .versus {
     color: #999;
@@ -166,6 +200,7 @@
   }
 
   .overlay.hidden { display: none; }
+
   .overlay-card { max-width: 480px; }
 
   .overlay h2 {
@@ -173,7 +208,11 @@
     margin: 0 0 8px;
   }
 
-  .overlay p { color: #ddd; margin: 0 0 16px; line-height: 1.5; }
+  .overlay p {
+    color: #ddd;
+    margin: 0 0 16px;
+    line-height: 1.5;
+  }
 
   .status {
     min-height: 25px;
@@ -234,6 +273,18 @@
     margin: 14px 0 0;
   }
 
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   @media (max-width: 620px) {
     body { padding: 12px; }
     .panel { padding: 10px; }
@@ -243,7 +294,6 @@
   }
 </style>
 </head>
-
 <body>
 <main class="app">
   <header>
@@ -355,14 +405,21 @@
 
   const paddle = { w: 14, h: 108, speed: 7.4 };
   const ballRadius = 10;
+
   let mode = 'cpu';
   let leftY = H / 2 - paddle.h / 2;
   let rightY = H / 2 - paddle.h / 2;
   let ball = { x: W / 2, y: H / 2, vx: 3.6, vy: 1.6 };
-  const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
-  let nextSpeedReset = null;
-  let previousBallX = ball.x, previousBallY = ball.y;
 
+  const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
+
+  // The first wall also waits 15–25 seconds of active gameplay.
+  let nextSpeedReset = (15 + Math.random() * 10) * 60;
+
+  let previousBallX = ball.x;
+  let previousBallY = ball.y;
+
+  // A skinny portrait wall made from individual breakable pixel bricks.
   const brickWall = {
     x: W / 2 - 10,
     y: H / 2 - 54,
@@ -378,10 +435,15 @@
     brickWall.bricks = Array(brickWall.cols * brickWall.rows).fill(true);
   }
 
-  let leftPoints = 0, rightPoints = 0;
-  let running = false, paused = false, gameOver = false;
+  let leftPoints = 0;
+  let rightPoints = 0;
+  let running = false;
+  let paused = false;
+  let gameOver = false;
   let rallyHits = 0;
 
+  // One collectible power-up at a time.
+  // Collecting it temporarily enlarges that side's paddle.
   let powerUp = null;
   let leftPowerTimer = 0;
   let rightPowerTimer = 0;
@@ -392,15 +454,19 @@
     nextPowerUpSpawn = (20 + Math.random() * 10) * 60;
   }
 
+  // The wall spawns repeatedly every random 15–25 seconds.
   function scheduleNextSpeedReset() {
-    // The wall appears every 55–65 seconds of active gameplay.
-    nextSpeedReset = 55 + Math.random() * 10;
+    nextSpeedReset = (15 + Math.random() * 10) * 60;
   }
 
   function moveBrickWall() {
-    brickWall.x = W / 2 - brickWall.cols * brickWall.brickW / 2
-      + (Math.random() * 180 - 90);
-    brickWall.y = 65 + Math.random() * (H - 130 - brickWall.rows * brickWall.brickH);
+    brickWall.x =
+      W / 2 - brickWall.cols * brickWall.brickW / 2 +
+      (Math.random() * 180 - 90);
+
+    brickWall.y =
+      65 + Math.random() * (H - 130 - brickWall.rows * brickWall.brickH);
+
     rebuildBrickWall();
     brickWall.active = true;
   }
@@ -445,13 +511,16 @@
     powerUp = null;
     leftPowerTimer = 0;
     rightPowerTimer = 0;
-    scheduleNextPowerUp();
-    nextSpeedReset = null;
 
+    scheduleNextPowerUp();
+    scheduleNextSpeedReset();
+
+    // Always hide the brick wall at the start of a new game.
     brickWall.active = false;
     brickWall.bricks = [];
 
     ui.pause.textContent = 'Ⅱ Pause';
+
     resetBall();
     updateScore();
     draw();
@@ -463,6 +532,7 @@
         'Ready to rally?',
         `Mode: ${mode === 'cpu' ? 'Player vs Computer' : '2 Players'}. First to ${ui.winScore.value} points wins!`
       );
+
       ui.status.textContent = 'Press Start Game when you’re ready.';
     }
   }
@@ -470,13 +540,10 @@
   function startGame() {
     if (gameOver) resetGame(false);
 
-    if (!running || nextSpeedReset === null) {
-      scheduleNextSpeedReset();
-    }
-
     running = true;
     paused = false;
     gameOver = false;
+
     ui.pause.textContent = 'Ⅱ Pause';
     hideOverlay();
 
@@ -525,6 +592,7 @@
     else rightPoints++;
 
     updateScore();
+
     const target = Number(ui.winScore.value);
 
     if (leftPoints >= target || rightPoints >= target) {
@@ -547,6 +615,7 @@
 
   function movePaddles(dt) {
     const step = paddle.speed * dt;
+
     const leftHeight = leftPowerTimer > 0 ? 150 : 108;
     const rightHeight = rightPowerTimer > 0 ? 150 : 108;
 
@@ -589,11 +658,11 @@
   }
 
   function collidePaddle(x, y, vx, vy, paddleX, paddleY, isLeft) {
-    const paddleHeight = (isLeft ? leftPowerTimer : rightPowerTimer) > 0
-      ? 150
-      : 108;
+    const paddleHeight =
+      (isLeft ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
 
-    const overlapsY = y + ballRadius >= paddleY &&
+    const overlapsY =
+      y + ballRadius >= paddleY &&
       y - ballRadius <= paddleY + paddleHeight;
 
     const overlapsX = isLeft
@@ -604,15 +673,17 @@
       return { vx, vy };
     }
 
-    const relative = (y - (paddleY + paddleHeight / 2)) /
-      (paddleHeight / 2);
+    const relative =
+      (y - (paddleY + paddleHeight / 2)) / (paddleHeight / 2);
 
     const angle = relative * 1.0;
     const speed = Math.min(Math.hypot(vx, vy) * 1.045 + 0.15, 12.5);
+
     const nextVx = (isLeft ? 1 : -1) * Math.cos(angle) * speed;
     const nextVy = Math.sin(angle) * speed;
 
     rallyHits++;
+
     return { vx: nextVx, vy: nextVy };
   }
 
@@ -656,13 +727,15 @@
     const leftX = 34;
     const rightX = W - 34 - paddle.w;
 
-    const hitLeft = powerUp.side === 'left' &&
+    const hitLeft =
+      powerUp.side === 'left' &&
       powerUp.x >= leftX - 8 &&
       powerUp.x <= leftX + paddle.w + 8 &&
       powerUp.y >= leftY - 8 &&
       powerUp.y <= leftY + (leftPowerTimer > 0 ? 150 : 108) + 8;
 
-    const hitRight = powerUp.side === 'right' &&
+    const hitRight =
+      powerUp.side === 'right' &&
       powerUp.x >= rightX - 8 &&
       powerUp.x <= rightX + paddle.w + 8 &&
       powerUp.y >= rightY - 8 &&
@@ -683,12 +756,14 @@
       rightPowerTimer = Math.max(0, rightPowerTimer - dt);
     }
 
-    // Count down in seconds while the game is actively running.
-    if (nextSpeedReset !== null) nextSpeedReset -= dt / 60;
+    nextSpeedReset -= dt;
 
-    // Every 55–65 seconds, reset the ball speed and spawn a fresh brick wall.
-    if (nextSpeedReset !== null && nextSpeedReset <= 0) {
-      const currentSpeed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
+    // Reset ball speed and spawn a fresh wall every 15–25 seconds.
+    // This timer pauses automatically when the game is paused.
+    if (nextSpeedReset <= 0) {
+      const currentSpeed =
+        Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
+
       const directionX = ball.vx / currentSpeed;
       const directionY = ball.vy / currentSpeed;
 
@@ -715,9 +790,12 @@
       ball.vy = -Math.abs(ball.vy);
     }
 
+    // The brick wall stays hidden until its timer activates it.
     const wallW = brickWall.cols * brickWall.brickW;
     const wallH = brickWall.rows * brickWall.brickH;
-    const wallHasBricks = brickWall.active && brickWall.bricks.some(Boolean);
+
+    const wallHasBricks =
+      brickWall.active && brickWall.bricks.some(Boolean);
 
     const overlapsWall = wallHasBricks &&
       ball.x + ballRadius > brickWall.x &&
@@ -729,18 +807,27 @@
       const impactX = ball.x;
       const impactY = ball.y;
 
-      const cameFromLeft = previousBallX + ballRadius <= brickWall.x;
-      const cameFromRight = previousBallX - ballRadius >= brickWall.x + wallW;
-      const cameFromTop = previousBallY + ballRadius <= brickWall.y;
-      const cameFromBottom = previousBallY - ballRadius >= brickWall.y + wallH;
+      const cameFromLeft =
+        previousBallX + ballRadius <= brickWall.x;
+
+      const cameFromRight =
+        previousBallX - ballRadius >= brickWall.x + wallW;
+
+      const cameFromTop =
+        previousBallY + ballRadius <= brickWall.y;
+
+      const cameFromBottom =
+        previousBallY - ballRadius >= brickWall.y + wallH;
 
       if (cameFromLeft || cameFromRight) {
         ball.vx *= -1;
+
         ball.x = cameFromLeft
           ? brickWall.x - ballRadius
           : brickWall.x + wallW + ballRadius;
       } else if (cameFromTop || cameFromBottom) {
         ball.vy *= -1;
+
         ball.y = cameFromTop
           ? brickWall.y - ballRadius
           : brickWall.y + wallH + ballRadius;
@@ -749,6 +836,7 @@
         ball.vy *= -1;
       }
 
+      // Remove one brick on each collision.
       const localCol = clamp(
         Math.floor((impactX - brickWall.x) / brickWall.brickW),
         0,
@@ -771,8 +859,13 @@
 
           const col = i % brickWall.cols;
           const row = Math.floor(i / brickWall.cols);
-          const cx = brickWall.x + col * brickWall.brickW + brickWall.brickW / 2;
-          const cy = brickWall.y + row * brickWall.brickH + brickWall.brickH / 2;
+
+          const cx =
+            brickWall.x + col * brickWall.brickW + brickWall.brickW / 2;
+
+          const cy =
+            brickWall.y + row * brickWall.brickH + brickWall.brickH / 2;
+
           const distance = Math.hypot(ball.x - cx, ball.y - cy);
 
           if (distance < bestDistance) {
@@ -792,11 +885,17 @@
     const leftX = 34;
     const rightX = W - 34 - paddle.w;
 
-    let hit = collidePaddle(ball.x, ball.y, ball.vx, ball.vy, leftX, leftY, true);
+    let hit = collidePaddle(
+      ball.x, ball.y, ball.vx, ball.vy, leftX, leftY, true
+    );
+
     ball.vx = hit.vx;
     ball.vy = hit.vy;
 
-    hit = collidePaddle(ball.x, ball.y, ball.vx, ball.vy, rightX, rightY, false);
+    hit = collidePaddle(
+      ball.x, ball.y, ball.vx, ball.vy, rightX, rightY, false
+    );
+
     ball.vx = hit.vx;
     ball.vy = hit.vy;
 
@@ -817,8 +916,11 @@
 
     checkPowerUpCollection();
 
-    if (ball.x + ballRadius < 0) scorePoint('right');
-    else if (ball.x - ballRadius > W) scorePoint('left');
+    if (ball.x + ballRadius < 0) {
+      scorePoint('right');
+    } else if (ball.x - ballRadius > W) {
+      scorePoint('left');
+    }
   }
 
   function drawRoundedRect(x, y, w, h, r, color, glow) {
@@ -834,10 +936,13 @@
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
+
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, W, H);
 
+    // Subtle court grid.
     ctx.save();
+
     ctx.strokeStyle = 'rgba(255,255,255,.035)';
     ctx.lineWidth = 1;
 
@@ -857,10 +962,13 @@
 
     ctx.restore();
 
+    // Center line and circle.
     ctx.save();
+
     ctx.setLineDash([12, 14]);
     ctx.strokeStyle = 'rgba(255,255,255,.38)';
     ctx.lineWidth = 4;
+
     ctx.beginPath();
     ctx.moveTo(W / 2, 24);
     ctx.lineTo(W / 2, H - 24);
@@ -869,23 +977,33 @@
     ctx.setLineDash([]);
     ctx.strokeStyle = 'rgba(255,255,255,.12)';
     ctx.lineWidth = 3;
+
     ctx.beginPath();
     ctx.arc(W / 2, H / 2, 82, 0, Math.PI * 2);
     ctx.stroke();
+
     ctx.restore();
 
+    // Reddish-orange pixelated brick wall, hidden until it spawns.
     const brickColors = ['#e85b32', '#d94a28', '#f06a3d'];
 
     for (let row = 0; brickWall.active && row < brickWall.rows; row++) {
       for (let col = 0; col < brickWall.cols; col++) {
         const index = row * brickWall.cols + col;
+
         if (!brickWall.bricks[index]) continue;
 
         const bx = brickWall.x + col * brickWall.brickW;
         const by = brickWall.y + row * brickWall.brickH;
 
         ctx.fillStyle = brickColors[(row + col) % brickColors.length];
-        ctx.fillRect(bx, by, brickWall.brickW - 1, brickWall.brickH - 1);
+
+        ctx.fillRect(
+          bx,
+          by,
+          brickWall.brickW - 1,
+          brickWall.brickH - 1
+        );
 
         ctx.fillStyle = 'rgba(255,190,150,.28)';
         ctx.fillRect(bx, by, brickWall.brickW - 1, 2);
@@ -893,24 +1011,37 @@
     }
 
     drawRoundedRect(
-      34, leftY, paddle.w,
+      34,
+      leftY,
+      paddle.w,
       leftPowerTimer > 0 ? 150 : 108,
-      0, '#f5f5f5', '#f5f5f5'
+      0,
+      '#f5f5f5',
+      '#f5f5f5'
     );
 
     drawRoundedRect(
-      W - 34 - paddle.w, rightY, paddle.w,
+      W - 34 - paddle.w,
+      rightY,
+      paddle.w,
       rightPowerTimer > 0 ? 150 : 108,
-      0, '#bdbdbd', '#bdbdbd'
+      0,
+      '#bdbdbd',
+      '#bdbdbd'
     );
 
+    // Smooth-moving square ball.
     ctx.save();
+
     ctx.shadowColor = '#fff';
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#fff';
+
     ctx.fillRect(ball.x - 6, ball.y - 6, 12, 12);
+
     ctx.restore();
 
+    // Blue pixelated power-up with a white up arrow.
     if (powerUp) {
       const cx = Math.round(powerUp.x);
       const cy = Math.round(powerUp.y);
@@ -918,19 +1049,26 @@
 
       ctx.save();
       ctx.shadowBlur = 0;
+
+      // Stepped pixel circle.
       ctx.fillStyle = '#168cff';
+
       ctx.fillRect(cx - 2 * p, cy - 4 * p, 4 * p, 8 * p);
       ctx.fillRect(cx - 3 * p, cy - 3 * p, 6 * p, 6 * p);
       ctx.fillRect(cx - 4 * p, cy - 2 * p, 8 * p, 4 * p);
 
+      // White up arrow.
       ctx.fillStyle = '#ffffff';
+
       ctx.fillRect(cx - p, cy - 3 * p, 2 * p, 2 * p);
       ctx.fillRect(cx - 2 * p, cy - 2 * p, p, p);
       ctx.fillRect(cx + p, cy - 2 * p, p, p);
       ctx.fillRect(cx - p, cy - p, 2 * p, 4 * p);
+
       ctx.restore();
     }
 
+    // Rally counter.
     ctx.fillStyle = 'rgba(218,225,255,.55)';
     ctx.font = '700 13px system-ui';
     ctx.textAlign = 'center';
@@ -939,6 +1077,7 @@
 
   function loop(now) {
     animationId = requestAnimationFrame(loop);
+
     const dt = Math.min((now - lastTime) / 16.667, 2);
     lastTime = now;
 
@@ -986,6 +1125,7 @@
   });
 
   document.addEventListener('keyup', event => keys.delete(event.key));
+
   window.addEventListener('blur', () => keys.clear());
 
   ui.cpuMode.addEventListener('click', () => setMode('cpu'));
@@ -1007,22 +1147,28 @@
     }
 
     if (!running) {
-      showOverlay('Ready to rally?', `First to ${ui.winScore.value} points wins!`);
+      showOverlay(
+        'Ready to rally?',
+        `First to ${ui.winScore.value} points wins!`
+      );
     }
   });
 
   ui.difficulty.addEventListener('change', () => {
-    const labels = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+    const labels = {
+      easy: 'Easy',
+      medium: 'Medium',
+      hard: 'Hard'
+    };
 
     if (mode === 'cpu') {
       ui.rightName.textContent = `CPU (${ui.difficulty.value})`;
-      ui.status.textContent = `${labels[ui.difficulty.value]} computer difficulty selected.`;
+      ui.status.textContent =
+        `${labels[ui.difficulty.value]} computer difficulty selected.`;
     }
   });
 
-  // The wall starts hidden and only appears after the timer expires.
-  brickWall.active = false;
-  brickWall.bricks = [];
+  // Draw the court before the first animation frame.
   draw();
   animationId = requestAnimationFrame(loop);
 })();
