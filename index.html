@@ -17,167 +17,60 @@
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    min-height: 100vh;
-    color: var(--text);
+    margin: 0; min-height: 100vh; color: var(--text);
     font-family: 'Courier New', Courier, monospace;
     background:
       radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.05), transparent 38%),
       radial-gradient(ellipse at 85% 80%, rgba(255,255,255,.035), transparent 40%),
       var(--bg);
-    display: grid;
-    place-items: center;
-    padding: 22px;
+    display: grid; place-items: center; padding: 22px;
   }
   .app { width: min(100%, 1000px); }
   header { text-align: center; margin-bottom: 18px; }
-  .eyebrow {
-    color: var(--cyan);
-    font-size: .78rem;
-    font-weight: 800;
-    letter-spacing: .28em;
-    text-transform: uppercase;
-  }
-  h1 {
-    margin: 5px 0;
-    font-size: clamp(2rem, 6vw, 3.5rem);
-    line-height: 1.05;
-    letter-spacing: .04em;
-  }
+  .eyebrow { color: var(--cyan); font-size: .78rem; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; }
+  h1 { margin: 5px 0; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.05; letter-spacing: .04em; }
   h1 span { color: var(--pink); text-shadow: 3px 3px 0 #555; }
   .subtitle { color: var(--muted); margin: 10px 0 0; }
   .panel {
-    border: 2px solid #666;
-    background: var(--panel);
-    border-radius: 3px;
-    padding: 16px;
-    box-shadow: 0 18px 60px rgba(0,0,0,.55);
+    border: 2px solid #666; background: var(--panel);
+    border-radius: 3px; padding: 16px; box-shadow: 0 18px 60px rgba(0,0,0,.55);
     backdrop-filter: none;
   }
-  .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
   .mode-group { display: flex; flex-wrap: wrap; gap: 8px; }
   button, select {
-    color: var(--text);
-    background: #191919;
-    border: 1px solid #777;
-    border-radius: 2px;
-    padding: 10px 14px;
-    font: inherit;
-    font-weight: 700;
+    color: var(--text); background: #191919; border: 1px solid #777;
+    border-radius: 2px; padding: 10px 14px; font: inherit; font-weight: 700;
   }
-  button {
-    cursor: pointer;
-    transition: transform .12s, border-color .12s, background .12s;
-  }
+  button { cursor: pointer; transition: transform .12s, border-color .12s, background .12s; }
   button:hover { transform: translateY(-1px); border-color: #fff; }
-  button:focus-visible, select:focus-visible {
-    outline: 2px solid var(--yellow);
-    outline-offset: 3px;
-  }
+  button:focus-visible, select:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
   button.active { color: #000; background: var(--cyan); border-color: #fff; }
   .actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .primary { color: #000; background: #fff; border-color: #fff; }
-  .scoreboard {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 12px;
-    margin: 10px 4px 14px;
-  }
+  .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin: 10px 4px 14px; }
   .score { text-align: center; }
-  .score .name {
-    font-size: .78rem;
-    font-weight: 800;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .score .number {
-    font-size: clamp(2rem, 7vw, 3.4rem);
-    font-weight: 900;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
+  .score .name { font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .score .number { font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; }
   #leftScore { color: var(--cyan); text-shadow: 2px 2px 0 #555; }
   #rightScore { color: var(--pink); text-shadow: 2px 2px 0 #444; }
   .versus { color: #999; font-size: .8rem; font-weight: 900; letter-spacing: .12em; }
-  .game-wrap {
-    position: relative;
-    overflow: hidden;
-    border: 2px solid #666;
-    border-radius: 2px;
-    background: #080808;
-  }
-  canvas {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    image-rendering: auto;
-  }
+  .game-wrap { position: relative; overflow: hidden; border: 2px solid #666; border-radius: 2px; background: #080808; }
+  canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; image-rendering: auto; }
   .overlay {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    text-align: center;
-    background: rgba(6,9,27,.58);
-    backdrop-filter: none;
+    position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
+    text-align: center; background: rgba(6,9,27,.58); backdrop-filter: none;
   }
   .overlay.hidden { display: none; }
   .overlay-card { max-width: 480px; }
   .overlay h2 { font-size: clamp(1.6rem, 5vw, 2.6rem); margin: 0 0 8px; }
   .overlay p { color: #ddd; margin: 0 0 16px; line-height: 1.5; }
-  .status {
-    min-height: 25px;
-    color: var(--yellow);
-    text-align: center;
-    margin: 12px 0 0;
-    font-weight: 700;
-  }
-  .powerup-note {
-    color: #cfcfcf;
-    text-align: center;
-    font-size: .85rem;
-    margin: 4px 0 0;
-  }
-  .help-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 14px;
-  }
-  .help {
-    border-radius: 2px;
-    background: rgba(255,255,255,.04);
-    border: 1px solid #444;
-    padding: 12px 14px;
-    color: var(--muted);
-    font-size: .9rem;
-    line-height: 1.6;
-  }
+  .status { min-height: 25px; color: var(--yellow); text-align: center; margin: 12px 0 0; font-weight: 700; }
+  .powerup-note { color: #cfcfcf; text-align: center; font-size: .85rem; margin: 4px 0 0; }
+  .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .help { border-radius: 2px; background: rgba(255,255,255,.04); border: 1px solid #444; padding: 12px 14px; color: var(--muted); font-size: .9rem; line-height: 1.6; }
   .help strong { color: var(--text); display: block; margin-bottom: 3px; }
-  kbd {
-    display: inline-block;
-    min-width: 25px;
-    text-align: center;
-    padding: 1px 6px;
-    margin: 0 2px;
-    color: var(--text);
-    background: #222;
-    border: 1px solid #888;
-    border-radius: 2px;
-    font: inherit;
-    font-size: .82rem;
-  }
+  kbd { display: inline-block; min-width: 25px; text-align: center; padding: 1px 6px; margin: 0 2px; color: var(--text); background: #222; border: 1px solid #888; border-radius: 2px; font: inherit; font-size: .82rem; }
   .footer-note { text-align: center; color: #888; font-size: .8rem; margin: 14px 0 0; }
   @media (max-width: 620px) {
     body { padding: 12px; }
@@ -223,15 +116,9 @@
     </div>
 
     <div class="scoreboard" aria-live="polite">
-      <div class="score">
-        <div id="leftName" class="name">Player 1</div>
-        <div id="leftScore" class="number">0</div>
-      </div>
+      <div class="score"><div id="leftName" class="name">Player 1</div><div id="leftScore" class="number">0</div></div>
       <div class="versus">VS</div>
-      <div class="score">
-        <div id="rightName" class="name">CPU</div>
-        <div id="rightScore" class="number">0</div>
-      </div>
+      <div class="score"><div id="rightName" class="name">CPU</div><div id="rightScore" class="number">0</div></div>
     </div>
 
     <div class="game-wrap">
@@ -248,14 +135,8 @@
     <p class="powerup-note">⬜ Power-up: collect the square to grow your paddle temporarily!</p>
 
     <div class="help-grid">
-      <div class="help">
-        <strong>🔹 Player 1 — left paddle</strong>
-        <kbd>W</kbd> move up · <kbd>S</kbd> move down
-      </div>
-      <div class="help">
-        <strong>Right paddle</strong>
-        <span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span>
-      </div>
+      <div class="help"><strong>🔹 Player 1 — left paddle</strong><kbd>W</kbd> move up · <kbd>S</kbd> move down</div>
+      <div class="help"><strong>Right paddle</strong><span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span></div>
     </div>
   </section>
   <p class="footer-note">Tip: keep your eye on the ball — each paddle hit makes the rally a little faster.</p>
@@ -286,7 +167,7 @@
   let nextSpeedReset = (160 + Math.random() * 15) * 60;
   let previousBallX = ball.x, previousBallY = ball.y;
 
-  // Skinny portrait wall made from individual breakable pixel bricks.
+  // A skinny portrait wall made from individual breakable pixel bricks.
   const brickWall = {
     x: W / 2 - 10,
     y: H / 2 - 54,
@@ -294,17 +175,19 @@
     rows: 9,
     brickW: 10,
     brickH: 12,
-    bricks: []
+    bricks: [],
+    active: false
   };
 
   function rebuildBrickWall() {
     brickWall.bricks = Array(brickWall.cols * brickWall.rows).fill(true);
   }
-  rebuildBrickWall();
 
   let leftPoints = 0, rightPoints = 0;
   let running = false, paused = false, gameOver = false;
   let rallyHits = 0;
+
+  // One collectible power-up at a time. Collecting it temporarily enlarges that side's paddle.
   let powerUp = null;
   let leftPowerTimer = 0;
   let rightPowerTimer = 0;
@@ -320,11 +203,11 @@
   }
 
   function moveBrickWall() {
-    brickWall.x = W / 2 - brickWall.cols * brickWall.brickW / 2 +
-      (Math.random() * 180 - 90);
-    brickWall.y = 65 + Math.random() *
-      (H - 130 - brickWall.rows * brickWall.brickH);
+    brickWall.x = W / 2 - brickWall.cols * brickWall.brickW / 2
+      + (Math.random() * 180 - 90);
+    brickWall.y = 65 + Math.random() * (H - 130 - brickWall.rows * brickWall.brickH);
     rebuildBrickWall();
+    brickWall.active = true;
   }
 
   const keys = new Set();
@@ -369,7 +252,11 @@
     rightPowerTimer = 0;
     scheduleNextPowerUp();
     scheduleNextSpeedReset();
-    moveBrickWall();
+
+    // Always hide the brick wall at the start of a new game.
+    brickWall.active = false;
+    brickWall.bricks = [];
+
     ui.pause.textContent = 'Ⅱ Pause';
     resetBall();
     updateScore();
@@ -405,6 +292,7 @@
 
   function pauseGame() {
     if (!running || gameOver) return;
+
     paused = !paused;
     ui.pause.textContent = paused ? '▶ Resume' : 'Ⅱ Pause';
 
@@ -438,15 +326,17 @@
     const target = Number(ui.winScore.value);
 
     if (leftPoints >= target || rightPoints >= target) {
-      finishGame(leftPoints > rightPoints
-        ? 'Player 1'
-        : (mode === 'cpu' ? 'Computer' : 'Player 2'));
+      finishGame(
+        leftPoints > rightPoints
+          ? 'Player 1'
+          : (mode === 'cpu' ? 'Computer' : 'Player 2')
+      );
       return;
     }
 
     ui.status.textContent = `${
       side === 'left'
-        ? (mode === 'cpu' ? 'Player 1' : 'Player 1')
+        ? 'Player 1'
         : (mode === 'cpu' ? 'Computer' : 'Player 2')
     } scored!`;
 
@@ -475,15 +365,19 @@
       const wobble = Math.sin(
         performance.now() / (difficulty === 'easy' ? 190 : 320)
       ) * settings.error * 0.22;
-      const prediction = ball.y +
-        ball.vy * (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
+
+      const prediction = ball.y + ball.vy *
+        (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
+
       const target = prediction - paddle.h / 2 + wobble;
       const diff = target - rightY;
       const cpuSpeed = settings.speed * dt;
 
       if (Math.abs(diff) > 5) {
-        rightY += Math.sign(diff) *
-          Math.min(Math.abs(diff) * settings.reaction, cpuSpeed);
+        rightY += Math.sign(diff) * Math.min(
+          Math.abs(diff) * settings.reaction,
+          cpuSpeed
+        );
       }
     }
 
@@ -492,10 +386,13 @@
   }
 
   function collidePaddle(x, y, vx, vy, paddleX, paddleY, isLeft) {
-    const paddleHeight =
-      (isLeft ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
-    const overlapsY =
-      y + ballRadius >= paddleY && y - ballRadius <= paddleY + paddleHeight;
+    const paddleHeight = (isLeft ? leftPowerTimer : rightPowerTimer) > 0
+      ? 150
+      : 108;
+
+    const overlapsY = y + ballRadius >= paddleY &&
+      y - ballRadius <= paddleY + paddleHeight;
+
     const overlapsX = isLeft
       ? x - ballRadius <= paddleX + paddle.w && x > paddleX
       : x + ballRadius >= paddleX && x < paddleX + paddle.w;
@@ -504,14 +401,14 @@
       return { vx, vy };
     }
 
-    const relative =
-      (y - (paddleY + paddleHeight / 2)) / (paddleHeight / 2);
+    const relative = (y - (paddleY + paddleHeight / 2)) /
+      (paddleHeight / 2);
     const angle = relative * 1.0;
     const speed = Math.min(Math.hypot(vx, vy) * 1.045 + 0.15, 12.5);
     const nextVx = (isLeft ? 1 : -1) * Math.cos(angle) * speed;
     const nextVy = Math.sin(angle) * speed;
-    rallyHits++;
 
+    rallyHits++;
     return { vx: nextVx, vy: nextVy };
   }
 
@@ -519,6 +416,7 @@
     const side = mode === 'cpu'
       ? 'left'
       : (Math.random() < 0.5 ? 'left' : 'right');
+
     const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
 
     powerUp = {
@@ -582,6 +480,7 @@
 
     nextSpeedReset -= dt;
 
+    // This timer repeatedly resets the ball speed and respawns the wall.
     if (nextSpeedReset <= 0) {
       const currentSpeed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
       const directionX = ball.vx / currentSpeed;
@@ -592,7 +491,6 @@
 
       moveBrickWall();
       scheduleNextSpeedReset();
-      ui.status.textContent = 'Ball speed reset! The brick wall has moved!';
     }
 
     previousBallX = ball.x;
@@ -609,10 +507,10 @@
       ball.vy = -Math.abs(ball.vy);
     }
 
-    // Brick-wall collision.
+    // The brick wall is hidden until its timer activates it.
     const wallW = brickWall.cols * brickWall.brickW;
     const wallH = brickWall.rows * brickWall.brickH;
-    const wallHasBricks = brickWall.bricks.some(Boolean);
+    const wallHasBricks = brickWall.active && brickWall.bricks.some(Boolean);
 
     const overlapsWall = wallHasBricks &&
       ball.x + ballRadius > brickWall.x &&
@@ -644,7 +542,7 @@
         ball.vy *= -1;
       }
 
-      // Break one brick every time the ball bounces off the wall.
+      // Remove a brick on every collision.
       const localCol = clamp(
         Math.floor((impactX - brickWall.x) / brickWall.brickW),
         0,
@@ -680,11 +578,7 @@
       brickWall.bricks[brickIndex] = false;
 
       if (!brickWall.bricks.some(Boolean)) {
-        ui.status.textContent =
-          'The brick wall has crumbled! It will rebuild when it moves.';
-      } else {
-        ui.status.textContent =
-          'The ball bounced off the wall and broke a brick!';
+        brickWall.active = false;
       }
     }
 
@@ -726,7 +620,7 @@
     ctx.shadowBlur = 0;
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.roundRect(x, y, w, h, r);
+    ctx.roundRect(x, y, w, h);
     ctx.fill();
     ctx.restore();
   }
@@ -736,7 +630,7 @@
     ctx.fillStyle = '#080808';
     ctx.fillRect(0, 0, W, H);
 
-    // Subtle court grid.
+    // Subtle court grid
     ctx.save();
     ctx.strokeStyle = 'rgba(255,255,255,.035)';
     ctx.lineWidth = 1;
@@ -747,6 +641,7 @@
       ctx.lineTo(x, H);
       ctx.stroke();
     }
+
     for (let y = 0; y < H; y += 48) {
       ctx.beginPath();
       ctx.moveTo(0, y);
@@ -755,7 +650,7 @@
     }
     ctx.restore();
 
-    // Center line and circle.
+    // Center line and circle
     ctx.save();
     ctx.setLineDash([12, 14]);
     ctx.strokeStyle = 'rgba(255,255,255,.38)';
@@ -773,10 +668,10 @@
     ctx.stroke();
     ctx.restore();
 
-    // Reddish-orange portrait brick wall.
+    // Reddish-orange pixelated brick wall, hidden until it spawns.
     const brickColors = ['#e85b32', '#d94a28', '#f06a3d'];
 
-    for (let row = 0; row < brickWall.rows; row++) {
+    for (let row = 0; brickWall.active && row < brickWall.rows; row++) {
       for (let col = 0; col < brickWall.cols; col++) {
         const index = row * brickWall.cols + col;
         if (!brickWall.bricks[index]) continue;
@@ -808,6 +703,8 @@
     ctx.shadowColor = '#fff';
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#fff';
+
+    // Smooth movement while keeping the ball square and pixel-like.
     ctx.fillRect(ball.x - 6, ball.y - 6, 12, 12);
     ctx.restore();
 
@@ -819,19 +716,22 @@
 
       ctx.save();
       ctx.shadowBlur = 0;
+
       ctx.fillStyle = '#168cff';
-      ctx.fillRect(cx - 2*p, cy - 4*p, 4*p, 8*p);
-      ctx.fillRect(cx - 3*p, cy - 3*p, 6*p, 6*p);
-      ctx.fillRect(cx - 4*p, cy - 2*p, 8*p, 4*p);
+      ctx.fillRect(cx - 2 * p, cy - 4 * p, 4 * p, 8 * p);
+      ctx.fillRect(cx - 3 * p, cy - 3 * p, 6 * p, 6 * p);
+      ctx.fillRect(cx - 4 * p, cy - 2 * p, 8 * p, 4 * p);
 
       ctx.fillStyle = '#ffffff';
-      ctx.fillRect(cx - p, cy - 3*p, 2*p, 2*p);
-      ctx.fillRect(cx - 2*p, cy - 2*p, p, p);
-      ctx.fillRect(cx + p, cy - 2*p, p, p);
-      ctx.fillRect(cx - p, cy - p, 2*p, 4*p);
+      ctx.fillRect(cx - p, cy - 3 * p, 2 * p, 2 * p);
+      ctx.fillRect(cx - 2 * p, cy - 2 * p, p, p);
+      ctx.fillRect(cx + p, cy - 2 * p, p, p);
+      ctx.fillRect(cx - p, cy - p, 2 * p, 4 * p);
+
       ctx.restore();
     }
 
+    // Tiny speed indicator
     ctx.fillStyle = 'rgba(218,225,255,.55)';
     ctx.font = '700 13px system-ui';
     ctx.textAlign = 'center';
@@ -843,7 +743,10 @@
     const dt = Math.min((now - lastTime) / 16.667, 2);
     lastTime = now;
 
-    if (running && !paused && !gameOver) update(dt);
+    if (running && !paused && !gameOver) {
+      update(dt);
+    }
+
     draw();
   }
 
@@ -854,6 +757,7 @@
     ui.rightName.textContent = mode === 'cpu'
       ? `CPU (${ui.difficulty.value})`
       : 'Player 2';
+
     ui.difficulty.disabled = mode !== 'cpu';
 
     ui.rightControls.innerHTML = mode === 'cpu'
@@ -865,7 +769,10 @@
 
   document.addEventListener('keydown', event => {
     const key = event.key;
-    if (['ArrowUp', 'ArrowDown', ' '].includes(key)) event.preventDefault();
+
+    if (['ArrowUp', 'ArrowDown', ' '].includes(key)) {
+      event.preventDefault();
+    }
 
     keys.add(key);
 
@@ -873,6 +780,7 @@
       if (gameOver || !running) startGame();
       else pauseGame();
     }
+
     if (key === 'Enter' && !running) startGame();
   });
 
@@ -896,6 +804,7 @@
     if (!gameOver) {
       ui.status.textContent = `First to ${ui.winScore.value} points wins.`;
     }
+
     if (!running) {
       showOverlay('Ready to rally?', `First to ${ui.winScore.value} points wins!`);
     }
@@ -910,6 +819,7 @@
     }
   });
 
+  // Draw the court before the first animation frame.
   draw();
   animationId = requestAnimationFrame(loop);
 })();
