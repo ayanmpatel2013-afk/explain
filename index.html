@@ -413,8 +413,8 @@
 
   const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
 
-  // The first wall also waits 15–25 seconds of active gameplay.
-  let nextSpeedReset = (15 + Math.random() * 10) * 60;
+  // The first wall waits 8–12 seconds of active gameplay.
+  let nextSpeedReset = (8 + Math.random() * 4) * 60;
 
   let previousBallX = ball.x;
   let previousBallY = ball.y;
@@ -428,7 +428,9 @@
     brickW: 10,
     brickH: 12,
     bricks: [],
-    active: false
+    active: false,
+    bounces: 0,
+    maxBounces: 7
   };
 
   function rebuildBrickWall() {
@@ -454,9 +456,9 @@
     nextPowerUpSpawn = (20 + Math.random() * 10) * 60;
   }
 
-  // The wall spawns repeatedly every random 15–25 seconds.
+  // The wall spawns repeatedly every random 8–12 seconds.
   function scheduleNextSpeedReset() {
-    nextSpeedReset = (15 + Math.random() * 10) * 60;
+    nextSpeedReset = (8 + Math.random() * 4) * 60;
   }
 
   function moveBrickWall() {
@@ -468,6 +470,7 @@
       65 + Math.random() * (H - 130 - brickWall.rows * brickWall.brickH);
 
     rebuildBrickWall();
+    brickWall.bounces = 0;
     brickWall.active = true;
   }
 
@@ -758,7 +761,7 @@
 
     nextSpeedReset -= dt;
 
-    // Reset ball speed and spawn a fresh wall every 15–25 seconds.
+    // Reset ball speed and spawn a fresh wall every 8–12 seconds.
     // This timer pauses automatically when the game is paused.
     if (nextSpeedReset <= 0) {
       const currentSpeed =
@@ -806,6 +809,9 @@
     if (overlapsWall) {
       const impactX = ball.x;
       const impactY = ball.y;
+
+      // Count one bounce each time the ball collides with the wall.
+      brickWall.bounces++;
 
       const cameFromLeft =
         previousBallX + ballRadius <= brickWall.x;
@@ -877,8 +883,13 @@
 
       brickWall.bricks[brickIndex] = false;
 
-      if (!brickWall.bricks.some(Boolean)) {
+      // The wall disappears after 7 ball bounces, even if bricks remain.
+      if (
+        brickWall.bounces >= brickWall.maxBounces ||
+        !brickWall.bricks.some(Boolean)
+      ) {
         brickWall.active = false;
+        brickWall.bricks = [];
       }
     }
 
@@ -984,7 +995,7 @@
 
     ctx.restore();
 
-    // Reddish-orange pixelated brick wall, hidden until it spawns.
+    // Detailed reddish-orange pixel bricks, hidden until the wall spawns.
     const brickColors = ['#e85b32', '#d94a28', '#f06a3d'];
 
     for (let row = 0; brickWall.active && row < brickWall.rows; row++) {
@@ -995,18 +1006,26 @@
 
         const bx = brickWall.x + col * brickWall.brickW;
         const by = brickWall.y + row * brickWall.brickH;
+        const bw = brickWall.brickW;
+        const bh = brickWall.brickH;
 
+        // Dark outline and mortar lines.
+        ctx.fillStyle = '#431c16';
+        ctx.fillRect(bx, by, bw, bh);
+
+        // Main brick body.
         ctx.fillStyle = brickColors[(row + col) % brickColors.length];
+        ctx.fillRect(bx + 1, by + 1, bw - 2, bh - 2);
 
-        ctx.fillRect(
-          bx,
-          by,
-          brickWall.brickW - 1,
-          brickWall.brickH - 1
-        );
+        // Bright top edge for a raised pixel-brick look.
+        ctx.fillStyle = '#ff9a69';
+        ctx.fillRect(bx + 1, by + 1, bw - 2, 2);
 
-        ctx.fillStyle = 'rgba(255,190,150,.28)';
-        ctx.fillRect(bx, by, brickWall.brickW - 1, 2);
+        // Dark lower edge and a small side shadow.
+        ctx.fillStyle = '#9e321e';
+        ctx.fillRect(bx + 1, by + bh - 3, bw - 2, 2);
+        ctx.fillStyle = '#752819';
+        ctx.fillRect(bx + bw - 3, by + 2, 2, bh - 4);
       }
     }
 
