@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,7 +163,7 @@
   let rightY = H / 2 - paddle.h / 2;
   let ball = { x: W / 2, y: H / 2, vx: 3.6, vy: 1.6 };
   const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
-  let nextSpeedReset = (160 + Math.random() * 15) * 60;
+  let nextSpeedReset = 0;
   let previousBallX = ball.x, previousBallY = ball.y;
 
   // A skinny portrait wall made from individual breakable pixel bricks.
@@ -253,7 +252,7 @@
     scheduleNextPowerUp();
     scheduleNextSpeedReset();
 
-    // Always hide the brick wall at the start of a new game.
+    // Always keep the wall hidden until its timer expires.
     brickWall.active = false;
     brickWall.bricks = [];
 
@@ -275,6 +274,7 @@
 
   function startGame() {
     if (gameOver) resetGame(false);
+    if (!running) scheduleNextSpeedReset();
     running = true;
     paused = false;
     gameOver = false;
@@ -506,8 +506,6 @@
       ball.y = H - ballRadius;
       ball.vy = -Math.abs(ball.vy);
     }
-
-    // The brick wall is hidden until its timer activates it.
     const wallW = brickWall.cols * brickWall.brickW;
     const wallH = brickWall.rows * brickWall.brickH;
     const wallHasBricks = brickWall.active && brickWall.bricks.some(Boolean);
@@ -668,7 +666,6 @@
     ctx.stroke();
     ctx.restore();
 
-    // Reddish-orange pixelated brick wall, hidden until it spawns.
     const brickColors = ['#e85b32', '#d94a28', '#f06a3d'];
 
     for (let row = 0; brickWall.active && row < brickWall.rows; row++) {
@@ -819,7 +816,9 @@
     }
   });
 
-  // Draw the court before the first animation frame.
+  // Start with no wall visible. Its first spawn timer begins when a game is started.
+  brickWall.active = false;
+  brickWall.bricks = [];
   draw();
   animationId = requestAnimationFrame(loop);
 })();
