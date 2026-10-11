@@ -360,7 +360,7 @@
         <button id="startBtn" class="primary" type="button">▶ Start Game</button>
         <button id="pauseBtn" type="button">Ⅱ Pause</button>
         <button id="restartBtn" type="button">↻ Restart</button>
-        <button id="settingsBtn" type="button" aria-expanded="false" aria-controls="settingsPanel">⚙ Settings</button>
+        <button id="settingsBtn" type="button" aria-expanded="false" aria-controls="settingsPanel">⚙ Open Settings</button>
       </div>
     </div>
 
@@ -440,7 +440,9 @@
   document.getElementById('settingsBtn').addEventListener('click', () => {
     const panel = document.getElementById('settingsPanel');
     const isOpen = panel.classList.toggle('open');
-    document.getElementById('settingsBtn').setAttribute('aria-expanded', String(isOpen));
+    const settingsButton = document.getElementById('settingsBtn');
+    settingsButton.setAttribute('aria-expanded', String(isOpen));
+    settingsButton.textContent = isOpen ? '✕ Close Settings' : '⚙ Open Settings';
   });
 
   musicChoice.addEventListener('change', updateMusicChoice);
