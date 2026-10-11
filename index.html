@@ -2,1120 +2,635 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Illegal Pong</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ILLEGAL PONG</title>
 <style>
-  :root {
-    --bg: #080808;
-    --panel: rgba(20, 20, 20, .94);
-    --cyan: #f4f4f4;
-    --pink: #bdbdbd;
-    --yellow: #ffffff;
-    --text: #f5f7ff;
-    --muted: #aaaaaa;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    min-height: 100vh;
-    color: var(--text);
-    font-family: 'Courier New', Courier, monospace;
-    background:
-      radial-gradient(ellipse at 15% 15%, rgba(255,255,255,.05), transparent 38%),
-      radial-gradient(ellipse at 85% 80%, rgba(255,255,255,.035), transparent 40%),
-      var(--bg);
-    display: grid;
-    place-items: center;
-    padding: 22px;
-  }
-
-  .app { width: min(100%, 1000px); }
-
-  header {
-    text-align: center;
-    margin-bottom: 18px;
-  }
-
-  .eyebrow {
-    color: var(--cyan);
-    font-size: .78rem;
-    font-weight: 800;
-    letter-spacing: .28em;
-    text-transform: uppercase;
-  }
-
-  h1 {
-    margin: 5px 0;
-    font-size: clamp(2rem, 6vw, 3.5rem);
-    line-height: 1.05;
-    letter-spacing: .04em;
-  }
-
-  h1 span {
-    color: var(--pink);
-    text-shadow: 3px 3px 0 #555;
-  }
-
-  .subtitle {
-    color: var(--muted);
-    margin: 10px 0 0;
-  }
-
-  .panel {
-    border: 2px solid #666;
-    background: var(--panel);
-    border-radius: 3px;
-    padding: 16px;
-    box-shadow: 0 18px 60px rgba(0,0,0,.55);
-    backdrop-filter: none;
-  }
-
-  .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .mode-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  button, select {
-    color: var(--text);
-    background: #191919;
-    border: 1px solid #777;
-    border-radius: 2px;
-    padding: 10px 14px;
-    font: inherit;
-    font-weight: 700;
-  }
-
-  button {
-    cursor: pointer;
-    transition: transform .12s, border-color .12s, background .12s;
-  }
-
-  button:hover {
-    transform: translateY(-1px);
-    border-color: #fff;
-  }
-
-  button:focus-visible, select:focus-visible {
-    outline: 2px solid var(--yellow);
-    outline-offset: 3px;
-  }
-
-  button.active {
-    color: #000;
-    background: var(--cyan);
-    border-color: #fff;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .primary {
-    color: #000;
-    background: #fff;
-    border-color: #fff;
-  }
-
-  .scoreboard {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 12px;
-    margin: 10px 4px 14px;
-  }
-
-  .score { text-align: center; }
-
-  .score .name {
-    font-size: .78rem;
-    font-weight: 800;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  .score .number {
-    font-size: clamp(2rem, 7vw, 3.4rem);
-    font-weight: 900;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  #leftScore {
-    color: var(--cyan);
-    text-shadow: 2px 2px 0 #555;
-  }
-
-  #rightScore {
-    color: var(--pink);
-    text-shadow: 2px 2px 0 #444;
-  }
-
-  .versus {
-    color: #999;
-    font-size: .8rem;
-    font-weight: 900;
-    letter-spacing: .12em;
-  }
-
-  .game-wrap {
-    position: relative;
-    overflow: hidden;
-    border: 2px solid #666;
-    border-radius: 2px;
-    background: #080808;
-  }
-
-  canvas {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
-    image-rendering: auto;
-  }
-
-  .overlay {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    text-align: center;
-    background: rgba(6,9,27,.58);
-    backdrop-filter: none;
-  }
-
-  .overlay.hidden { display: none; }
-
-  .overlay-card { max-width: 480px; }
-
-  .overlay h2 {
-    font-size: clamp(1.6rem, 5vw, 2.6rem);
-    margin: 0 0 8px;
-  }
-
-  .overlay p {
-    color: #ddd;
-    margin: 0 0 16px;
-    line-height: 1.5;
-  }
-
-  .status {
-    min-height: 25px;
-    color: var(--yellow);
-    text-align: center;
-    margin: 12px 0 0;
-    font-weight: 700;
-  }
-
-  .powerup-note {
-    color: #cfcfcf;
-    text-align: center;
-    font-size: .85rem;
-    margin: 4px 0 0;
-  }
-
-  .help-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 14px;
-  }
-
-  .help {
-    border-radius: 2px;
-    background: rgba(255,255,255,.04);
-    border: 1px solid #444;
-    padding: 12px 14px;
-    color: var(--muted);
-    font-size: .9rem;
-    line-height: 1.6;
-  }
-
-  .help strong {
-    color: var(--text);
-    display: block;
-    margin-bottom: 3px;
-  }
-
-  kbd {
-    display: inline-block;
-    min-width: 25px;
-    text-align: center;
-    padding: 1px 6px;
-    margin: 0 2px;
-    color: var(--text);
-    background: #222;
-    border: 1px solid #888;
-    border-radius: 2px;
-    font: inherit;
-    font-size: .82rem;
-  }
-
-  .footer-note {
-    text-align: center;
-    color: #888;
-    font-size: .8rem;
-    margin: 14px 0 0;
-  }
-
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  @media (max-width: 620px) {
-    body { padding: 12px; }
-    .panel { padding: 10px; }
-    .toolbar { justify-content: center; }
-    .help-grid { grid-template-columns: 1fr; }
-    .help { padding: 10px; }
-  }
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#080808;color:#fff;font-family:monospace;text-align:center}
+h1{font-size:clamp(32px,6vw,54px);margin:8px 0}
+p{color:#bbb}
+.panel{max-width:1000px;margin:auto;padding:14px;border:2px solid #666;background:#111}
+button,select{background:#181818;color:white;border:1px solid #888;padding:10px;margin:4px;font:bold 14px monospace;cursor:pointer}
+button.active,button.primary{background:white;color:black}
+#scores{display:flex;justify-content:space-around;align-items:center;font-size:clamp(25px,5vw,44px);font-weight:bold;margin:14px}
+#scores small{display:block;font-size:13px;color:#aaa}
+.game{position:relative;max-width:960px;margin:auto;border:2px solid #666}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:#080808}
+#overlay{position:absolute;inset:0;display:grid;place-items:center;background:#000b;padding:20px}
+#overlay.hidden{display:none}
+#overlay h2{font-size:clamp(24px,5vw,42px)}
+#status{min-height:22px;color:white;font-weight:bold}
+.help{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left;margin-top:15px}
+.help div{border:1px solid #444;padding:12px;color:#ccc;line-height:1.8}
+kbd{background:#222;border:1px solid #888;padding:2px 6px;color:white}
+@media(max-width:600px){.help{grid-template-columns:1fr}body{padding:8px}}
 </style>
 </head>
 <body>
-<main class="app">
-  <header>
-    <div class="eyebrow">Retro • Neon • Arcade</div>
-    <h1>ILLEGAL <span>PONG</span></h1>
-    <p class="subtitle">Two paddles. One ball. Bring the arcade home.</p>
-  </header>
+<h1>ILLEGAL PONG</h1>
+<p>Two paddles. One ball. No brick walls.</p>
 
-  <section class="panel" aria-label="Pong game">
-    <div class="toolbar">
-      <div class="mode-group" role="group" aria-label="Game mode">
-        <button id="cpuMode" class="active" type="button">🤖 vs Computer</button>
-        <button id="twoMode" type="button">👥 2 Players</button>
-      </div>
+<main class="panel">
+  <div>
+    <button id="cpu" class="active">🤖 vs Computer</button>
+    <button id="two">👥 2 Players</button>
+    <select id="difficulty" aria-label="Computer difficulty">
+      <option value="easy">Easy Bot</option>
+      <option value="medium" selected>Medium Bot</option>
+      <option value="hard">Hard Bot</option>
+    </select>
+    <select id="winScore" aria-label="Points to win">
+      <option value="5">First to 5</option>
+      <option value="7" selected>First to 7</option>
+      <option value="10">First to 10</option>
+      <option value="15">First to 15</option>
+    </select>
+    <button id="start" class="primary">▶ Start Game</button>
+    <button id="pause">Ⅱ Pause</button>
+    <button id="restart">↻ Restart</button>
+  </div>
 
-      <div class="actions">
-        <label for="difficulty" class="sr-only">Computer difficulty</label>
-        <select id="difficulty" aria-label="Computer difficulty">
-          <option value="easy">Easy Bot</option>
-          <option value="medium" selected>Medium Bot</option>
-          <option value="hard">Hard Bot</option>
-        </select>
+  <div id="scores">
+    <div><small id="leftName">PLAYER 1</small><span id="ls">0</span></div>
+    <span style="font-size:18px;color:#888">VS</span>
+    <div><small id="rightName">CPU</small><span id="rs">0</span></div>
+  </div>
 
-        <label for="winScore" class="sr-only">Points to win</label>
-        <select id="winScore" aria-label="Points to win">
-          <option value="5">First to 5</option>
-          <option value="7" selected>First to 7</option>
-          <option value="10">First to 10</option>
-          <option value="15">First to 15</option>
-        </select>
-
-        <button id="startBtn" class="primary" type="button">▶ Start Game</button>
-        <button id="pauseBtn" type="button">Ⅱ Pause</button>
-        <button id="restartBtn" type="button">↻ Restart</button>
-      </div>
-    </div>
-
-    <div class="scoreboard" aria-live="polite">
-      <div class="score">
-        <div id="leftName" class="name">Player 1</div>
-        <div id="leftScore" class="number">0</div>
-      </div>
-
-      <div class="versus">VS</div>
-
-      <div class="score">
-        <div id="rightName" class="name">CPU</div>
-        <div id="rightScore" class="number">0</div>
+  <div class="game">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="overlay">
+      <div>
+        <h2 id="overlayTitle">READY TO RALLY?</h2>
+        <p id="overlayText">First to 7 points wins!</p>
+        <button id="overlayStart" class="primary">▶ Let's Play</button>
       </div>
     </div>
+  </div>
 
-    <div class="game-wrap">
-      <canvas id="game" width="960" height="540" aria-label="Pong playing field"></canvas>
+  <p id="status">Press Start Game when you're ready.</p>
+  <p>🎁 Power-ups appear every 20–30 seconds: 50/50 BIG PADDLE or SHOTGUN.</p>
 
-      <div id="overlay" class="overlay">
-        <div class="overlay-card">
-          <h2 id="overlayTitle">Ready to rally?</h2>
-          <p id="overlayText">Choose a mode, then hit Start Game. First to 7 points wins!</p>
-          <button id="overlayStart" class="primary" type="button">▶ Let's Play</button>
-        </div>
-      </div>
+  <div class="help">
+    <div><b>PLAYER 1 — LEFT</b><br>
+      <kbd>W</kbd> Up · <kbd>S</kbd> Down<br>
+      <kbd>D</kbd> Fire shotgun once
     </div>
-
-    <p id="status" class="status" aria-live="polite">Press Start Game when you're ready.</p>
-    <p class="powerup-note">🎁 Power-ups are random: BIG PADDLE or SHOTGUN (50/50).</p>
-
-    <div class="help-grid">
-      <div class="help">
-        <strong>🔹 Player 1 — left paddle</strong>
-        <kbd>W</kbd> move up · <kbd>S</kbd> move down · <kbd>D</kbd> fire shotgun
-      </div>
-
-      <div class="help">
-        <strong>Right paddle</strong>
-        <span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span>
-      </div>
+    <div><b id="rightHelpTitle">RIGHT — COMPUTER</b><br>
+      <kbd>↑</kbd> Up · <kbd>↓</kbd> Down<br>
+      <kbd>←</kbd> Fire shotgun in 2-player mode
     </div>
-  </section>
-
-  <p class="footer-note">Tip: keep your eye on the ball — each paddle hit makes the rally a little faster.</p>
+  </div>
 </main>
 
 <script>
 (() => {
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const $ = id => document.getElementById(id);
+"use strict";
 
-  const ui = {
-    cpuMode: $('cpuMode'),
-    twoMode: $('twoMode'),
-    winScore: $('winScore'),
-    difficulty: $('difficulty'),
-    start: $('startBtn'),
-    pause: $('pauseBtn'),
-    restart: $('restartBtn'),
-    overlay: $('overlay'),
-    overlayTitle: $('overlayTitle'),
-    overlayText: $('overlayText'),
-    overlayStart: $('overlayStart'),
-    status: $('status'),
-    leftName: $('leftName'),
-    rightName: $('rightName'),
-    leftScore: $('leftScore'),
-    rightScore: $('rightScore'),
-    rightControls: $('rightControls')
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
+const $ = id => document.getElementById(id);
+
+let mode = "cpu";
+let running = false, paused = false, gameOver = false;
+let leftScore = 0, rightScore = 0;
+let keys = new Set();
+let lastTime = 0, animationId = 0;
+
+const PADDLE_W = 14;
+const NORMAL_H = 108;
+const BIG_H = 150;
+const BALL_R = 9;
+const ORIGINAL_SPEED = Math.hypot(3.6, 1.6);
+
+let leftY, rightY, ball;
+let leftBig = 0, rightBig = 0;
+let leftGun = false, rightGun = false;
+let leftStun = 0, rightStun = 0;
+let powerUp = null;
+let bullets = [];
+let gunEffect = null;
+let rallyHits = 0;
+
+let speedResetTimer = 95;
+let powerSpawnTimer = randomPowerDelay();
+
+function randomPowerDelay() {
+  return 20 + Math.random() * 10;
+}
+
+function paddleHeight(side) {
+  return (side === "left" ? leftBig : rightBig) > 0 ? BIG_H : NORMAL_H;
+}
+
+function resetUpgrades() {
+  leftBig = rightBig = 0;
+  leftGun = rightGun = false;
+  leftStun = rightStun = 0;
+  bullets = [];
+  gunEffect = null;
+  powerUp = null;
+  powerSpawnTimer = randomPowerDelay();
+}
+
+function resetBall(direction = Math.random() < 0.5 ? -1 : 1) {
+  ball = {
+    x: W / 2,
+    y: H / 2,
+    vx: 3.6 * direction,
+    vy: (Math.random() * 2.4 - 1.2) || 0.9
+  };
+  rallyHits = 0;
+}
+
+function resetGame(startAfter = false) {
+  leftScore = rightScore = 0;
+  leftY = rightY = H / 2 - NORMAL_H / 2;
+  speedResetTimer = 95;
+  resetUpgrades();
+  resetBall();
+  running = false;
+  paused = false;
+  gameOver = false;
+  $("pause").textContent = "Ⅱ Pause";
+  updateScores();
+  draw();
+
+  if (startAfter) startGame();
+  else showOverlay("READY TO RALLY?", `First to ${$("winScore").value} points wins!`);
+}
+
+function updateScores() {
+  $("ls").textContent = leftScore;
+  $("rs").textContent = rightScore;
+}
+
+function showOverlay(title, message, button = "▶ Let's Play") {
+  $("overlayTitle").textContent = title;
+  $("overlayText").textContent = message;
+  $("overlayStart").textContent = button;
+  $("overlay").classList.remove("hidden");
+}
+
+function hideOverlay() {
+  $("overlay").classList.add("hidden");
+}
+
+function startGame() {
+  if (gameOver) {
+    resetGame(false);
+  }
+  running = true;
+  paused = false;
+  gameOver = false;
+  $("pause").textContent = "Ⅱ Pause";
+  hideOverlay();
+  $("status").textContent = mode === "cpu"
+    ? "Player 1 — good luck!"
+    : "Player 1 vs Player 2 — good luck!";
+
+  if (!animationId) {
+    lastTime = performance.now();
+    animationId = requestAnimationFrame(loop);
+  }
+}
+
+function pauseGame() {
+  if (!running || gameOver) return;
+  paused = !paused;
+  $("pause").textContent = paused ? "▶ Resume" : "Ⅱ Pause";
+  if (paused) {
+    showOverlay("PAUSED", "Your score is safe.", "▶ Resume");
+  } else {
+    hideOverlay();
+    lastTime = performance.now();
+  }
+}
+
+function finishGame(winner) {
+  running = false;
+  paused = false;
+  gameOver = true;
+  resetUpgrades();
+  showOverlay(`${winner} WINS!`, `Final score: ${leftScore} – ${rightScore}`, "↻ Play Again");
+  $("status").textContent = `${winner} wins the match!`;
+}
+
+function scorePoint(side) {
+  if (side === "left") leftScore++;
+  else rightScore++;
+
+  updateScores();
+
+  // Every new point clears ALL players' upgrades and effects.
+  resetUpgrades();
+
+  const target = Number($("winScore").value);
+  if (leftScore >= target || rightScore >= target) {
+    finishGame(leftScore > rightScore
+      ? "Player 1"
+      : (mode === "cpu" ? "Computer" : "Player 2"));
+    return;
+  }
+
+  $("status").textContent =
+    `${side === "left" ? "Player 1" : mode === "cpu" ? "Computer" : "Player 2"} scored!`;
+
+  resetBall(side === "left" ? 1 : -1);
+}
+
+function movePaddles(dt) {
+  const step = 7.2 * dt;
+
+  if (leftStun <= 0) {
+    if (keys.has("w")) leftY -= step;
+    if (keys.has("s")) leftY += step;
+  }
+
+  if (mode === "two") {
+    if (rightStun <= 0) {
+      if (keys.has("ArrowUp")) rightY -= step;
+      if (keys.has("ArrowDown")) rightY += step;
+    }
+  } else if (rightStun <= 0) {
+    const settings = {
+      easy:   { speed: 3.0, error: 85 },
+      medium: { speed: 4.8, error: 34 },
+      hard:   { speed: 6.8, error: 7 }
+    }[$("difficulty").value];
+
+    const wobble = Math.sin(performance.now() / 300) * settings.error * 0.22;
+    const prediction = ball.y + ball.vy * 2;
+    const target = prediction - paddleHeight("right") / 2 + wobble;
+    const diff = target - rightY;
+
+    rightY += Math.sign(diff) * Math.min(Math.abs(diff), settings.speed * dt);
+  }
+
+  leftY = Math.max(0, Math.min(H - paddleHeight("left"), leftY));
+  rightY = Math.max(0, Math.min(H - paddleHeight("right"), rightY));
+}
+
+function spawnPowerUp() {
+  // CPU mode gives power-ups only to the human player.
+  const side = mode === "cpu" ? "left" : Math.random() < 0.5 ? "left" : "right";
+
+  // Exactly a 50/50 chance of either upgrade.
+  const type = Math.random() < 0.5 ? "grow" : "shotgun";
+
+  powerUp = {
+    side,
+    type,
+    x: side === "left" ? 51 : W - 51,
+    y: 45 + Math.random() * (H - 90),
+    life: 15
   };
 
-  const paddle = { w: 14, h: 108, speed: 7.4 };
-  const ballRadius = 10;
+  $("status").textContent =
+    `A ${type === "grow" ? "BIG PADDLE" : "SHOTGUN"} power-up appeared!`;
+}
 
-  let mode = 'cpu';
-  let leftY = H / 2 - paddle.h / 2;
-  let rightY = H / 2 - paddle.h / 2;
-  let ball = { x: W / 2, y: H / 2, vx: 3.6, vy: 1.6 };
+function collectPowerUp(side) {
+  if (!powerUp || powerUp.side !== side) return;
 
-  const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
-
-  // Reset the ball to its original speed every 95 seconds of active play.
-  let nextSpeedReset = 95 * 60;
-
-  let previousBallX = ball.x;
-  let previousBallY = ball.y;
-
-  let leftPoints = 0;
-  let rightPoints = 0;
-  let running = false;
-  let paused = false;
-  let gameOver = false;
-  let rallyHits = 0;
-
-  // One power-up at a time: big paddle or one-use shotgun, chosen 50/50.
-  let powerUp = null;
-  let leftPowerTimer = 0;
-  let rightPowerTimer = 0;
-  let leftShotgun = false;
-  let rightShotgun = false;
-  let leftStunTimer = 0;
-  let rightStunTimer = 0;
-  let bullets = [];
-  let shotgunEffect = null;
-  let nextPowerUpSpawn = 25 * 60;
-  const POWER_DURATION = 600;
-
-  function scheduleNextPowerUp() {
-    nextPowerUpSpawn = (20 + Math.random() * 10) * 60;
+  const type = powerUp.type;
+  if (type === "grow") {
+    if (side === "left") leftBig = 10;
+    else rightBig = 10;
+  } else {
+    if (side === "left") leftGun = true;
+    else rightGun = true;
   }
 
-  function clearRoundUpgrades() {
-    powerUp = null;
-    leftPowerTimer = rightPowerTimer = 0;
-    leftShotgun = rightShotgun = false;
-    leftStunTimer = rightStunTimer = 0;
-    bullets = [];
-    shotgunEffect = null;
-    scheduleNextPowerUp();
+  powerUp = null;
+  powerSpawnTimer = randomPowerDelay();
+
+  const name = side === "left" ? "Player 1" : mode === "cpu" ? "Computer" : "Player 2";
+  $("status").textContent = type === "grow"
+    ? `${name} got BIG PADDLE for 10 seconds!`
+    : `${name} got the SHOTGUN! Press ${side === "left" ? "D" : "←"} to fire once.`;
+}
+
+function checkPowerUpPickup() {
+  if (!powerUp) return;
+  const side = powerUp.side;
+  const py = side === "left" ? leftY : rightY;
+  const ph = paddleHeight(side);
+
+  if (powerUp.y >= py - 12 && powerUp.y <= py + ph + 12) {
+    collectPowerUp(side);
   }
+}
 
-  const keys = new Set();
-  let lastTime = 0;
-  let animationId = 0;
+function fireShotgun(side) {
+  const hasGun = side === "left" ? leftGun : rightGun;
+  if (!hasGun || !running || paused || gameOver) return;
 
-  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  if (side === "left") leftGun = false;
+  else rightGun = false;
 
-  function updateScore() {
-    ui.leftScore.textContent = leftPoints;
-    ui.rightScore.textContent = rightPoints;
-  }
+  const direction = side === "left" ? 1 : -1;
+  const x = side === "left" ? 52 : W - 52;
+  const y = (side === "left" ? leftY : rightY) + paddleHeight(side) / 2;
 
-  function showOverlay(title, text, buttonText = '▶ Start Game') {
-    ui.overlayTitle.textContent = title;
-    ui.overlayText.textContent = text;
-    ui.overlayStart.textContent = buttonText;
-    ui.overlay.classList.remove('hidden');
-  }
-
-  function hideOverlay() {
-    ui.overlay.classList.add('hidden');
-  }
-
-  function resetBall(direction = Math.random() < .5 ? -1 : 1) {
-    ball.x = W / 2;
-    ball.y = H / 2;
-    ball.vx = 3.6 * direction;
-    ball.vy = (Math.random() * 2.4 - 1.2) || 0.9;
-    rallyHits = 0;
-  }
-
-  function resetGame(shouldStart = false) {
-    leftPoints = 0;
-    rightPoints = 0;
-    leftY = rightY = H / 2 - paddle.h / 2;
-    running = false;
-    paused = false;
-    gameOver = false;
-    clearRoundUpgrades();
-    nextSpeedReset = 95 * 60;
-
-    ui.pause.textContent = 'Ⅱ Pause';
-
-    resetBall();
-    updateScore();
-    draw();
-
-    if (shouldStart) {
-      startGame();
-    } else {
-      showOverlay(
-        'Ready to rally?',
-        `Mode: ${mode === 'cpu' ? 'Player vs Computer' : '2 Players'}. First to ${ui.winScore.value} points wins!`
-      );
-
-      ui.status.textContent = 'Press Start Game when you’re ready.';
-    }
-  }
-
-  function startGame() {
-    if (gameOver) resetGame(false);
-
-    running = true;
-    paused = false;
-    gameOver = false;
-
-    ui.pause.textContent = 'Ⅱ Pause';
-    hideOverlay();
-
-    ui.status.textContent = mode === 'cpu'
-      ? 'You are Player 1 — good luck!'
-      : 'Player 1 vs Player 2 — good luck!';
-
-    if (!animationId) {
-      lastTime = performance.now();
-      animationId = requestAnimationFrame(loop);
-    }
-  }
-
-  function pauseGame() {
-    if (!running || gameOver) return;
-
-    paused = !paused;
-    ui.pause.textContent = paused ? '▶ Resume' : 'Ⅱ Pause';
-
-    if (paused) {
-      showOverlay('Paused', 'Take a breather. Your score is safe.', '▶ Resume');
-      ui.status.textContent = 'Game paused.';
-    } else {
-      hideOverlay();
-      ui.status.textContent = 'Back in the game!';
-      lastTime = performance.now();
-    }
-  }
-
-  function finishGame(winner) {
-    running = false;
-    paused = false;
-    gameOver = true;
-
-    showOverlay(
-      `${winner} wins! 🎉`,
-      `Final score: ${leftPoints} — ${rightPoints}. Fancy a rematch?`,
-      '↻ Play Again'
-    );
-
-    ui.status.textContent = `${winner} wins the match!`;
-  }
-
-  function scorePoint(side) {
-    if (side === 'left') leftPoints++;
-    else rightPoints++;
-
-    updateScore();
-    clearRoundUpgrades();
-
-    const target = Number(ui.winScore.value);
-
-    if (leftPoints >= target || rightPoints >= target) {
-      finishGame(
-        leftPoints > rightPoints
-          ? 'Player 1'
-          : (mode === 'cpu' ? 'Computer' : 'Player 2')
-      );
-      return;
-    }
-
-    ui.status.textContent = `${
-      side === 'left'
-        ? 'Player 1'
-        : (mode === 'cpu' ? 'Computer' : 'Player 2')
-    } scored!`;
-
-    resetBall(side === 'left' ? 1 : -1);
-  }
-
-  function movePaddles(dt) {
-    const step = paddle.speed * dt;
-
-    const leftHeight = leftPowerTimer > 0 ? 150 : 108;
-    const rightHeight = rightPowerTimer > 0 ? 150 : 108;
-
-    if (leftStunTimer <= 0) {
-      if (keys.has('w') || keys.has('W')) leftY -= step;
-      if (keys.has('s') || keys.has('S')) leftY += step;
-    }
-
-    if (mode === 'two') {
-      if (rightStunTimer <= 0) {
-        if (keys.has('ArrowUp')) rightY -= step;
-        if (keys.has('ArrowDown')) rightY += step;
-      }
-    } else if (rightStunTimer <= 0) {
-      const difficulty = ui.difficulty.value;
-
-      const settings = {
-        easy:   { speed: 3.0, error: 88, reaction: 0.72 },
-        medium: { speed: 4.8, error: 34, reaction: 0.88 },
-        hard:   { speed: 6.8, error: 7, reaction: 1.00 }
-      }[difficulty];
-
-      const wobble = Math.sin(
-        performance.now() / (difficulty === 'easy' ? 190 : 320)
-      ) * settings.error * 0.22;
-
-      const prediction = ball.y + ball.vy *
-        (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
-
-      const target = prediction - paddle.h / 2 + wobble;
-      const diff = target - rightY;
-      const cpuSpeed = settings.speed * dt;
-
-      if (Math.abs(diff) > 5) {
-        rightY += Math.sign(diff) * Math.min(
-          Math.abs(diff) * settings.reaction,
-          cpuSpeed
-        );
-      }
-    }
-
-    leftY = clamp(leftY, 0, H - leftHeight);
-    rightY = clamp(rightY, 0, H - rightHeight);
-  }
-
-  function collidePaddle(x, y, vx, vy, paddleX, paddleY, isLeft) {
-    const paddleHeight =
-      (isLeft ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
-
-    const overlapsY =
-      y + ballRadius >= paddleY &&
-      y - ballRadius <= paddleY + paddleHeight;
-
-    const overlapsX = isLeft
-      ? x - ballRadius <= paddleX + paddle.w && x > paddleX
-      : x + ballRadius >= paddleX && x < paddleX + paddle.w;
-
-    if (!overlapsX || !overlapsY || (isLeft ? vx >= 0 : vx <= 0)) {
-      return { vx, vy };
-    }
-
-    const relative =
-      (y - (paddleY + paddleHeight / 2)) / (paddleHeight / 2);
-
-    const angle = relative * 1.0;
-    const speed = Math.min(Math.hypot(vx, vy) * 1.045 + 0.15, 12.5);
-
-    const nextVx = (isLeft ? 1 : -1) * Math.cos(angle) * speed;
-    const nextVy = Math.sin(angle) * speed;
-
-    rallyHits++;
-
-    return { vx: nextVx, vy: nextVy };
-  }
-
-  function spawnPowerUp() {
-    const side = mode === 'cpu'
-      ? 'left'
-      : (Math.random() < 0.5 ? 'left' : 'right');
-    const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
-
-    powerUp = {
-      x: paddleX + paddle.w / 2,
-      y: 65 + Math.random() * (H - 130),
-      side,
-      type: Math.random() < 0.5 ? 'grow' : 'shotgun',
-      size: 20,
-      life: 900
-    };
-
-    ui.status.textContent = `A random ${powerUp.type === 'grow' ? 'big-paddle' : 'shotgun'} power-up appeared!`;
-  }
-
-  function collectPowerUp(side) {
-    const type = powerUp.type;
-    if (type === 'grow') {
-      if (side === 'left') leftPowerTimer = POWER_DURATION;
-      else rightPowerTimer = POWER_DURATION;
-    } else {
-      if (side === 'left') leftShotgun = true;
-      else rightShotgun = true;
-    }
-
-    powerUp = null;
-    scheduleNextPowerUp();
-
-    const playerName = side === 'left' ? 'Player 1' : (mode === 'cpu' ? 'Computer' : 'Player 2');
-    ui.status.textContent = type === 'grow'
-      ? `${playerName} got the BIG PADDLE upgrade!`
-      : `${playerName} got the SHOTGUN! ${side === 'left' ? 'Press D' : 'Press ←'} to fire once.`;
-  }
-
-  function checkPowerUpCollection() {
-    if (!powerUp) return;
-    const leftX = 34;
-    const rightX = W - 34 - paddle.w;
-    const hitLeft = powerUp.side === 'left' &&
-      powerUp.x >= leftX - 8 && powerUp.x <= leftX + paddle.w + 8 &&
-      powerUp.y >= leftY - 8 && powerUp.y <= leftY + (leftPowerTimer > 0 ? 150 : 108) + 8;
-    const hitRight = powerUp.side === 'right' &&
-      powerUp.x >= rightX - 8 && powerUp.x <= rightX + paddle.w + 8 &&
-      powerUp.y >= rightY - 8 && powerUp.y <= rightY + (rightPowerTimer > 0 ? 150 : 108) + 8;
-    if (hitLeft) collectPowerUp('left');
-    else if (hitRight) collectPowerUp('right');
-  }
-
-  function fireShotgun(side) {
-    const hasShotgun = side === 'left' ? leftShotgun : rightShotgun;
-    if (!hasShotgun || !running || paused || gameOver) return;
-    if (side === 'left') leftShotgun = false;
-    else rightShotgun = false;
-
-    const paddleX = side === 'left' ? 34 + paddle.w : W - 34 - paddle.w;
-    const paddleY = side === 'left' ? leftY : rightY;
-    const paddleH = (side === 'left' ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
-    const originX = side === 'left' ? paddleX + 3 : paddleX - 3;
-    const originY = paddleY + paddleH / 2;
-    const direction = side === 'left' ? 1 : -1;
-    for (let i = 0; i < 5; i++) {
-      const angle = (-0.72 + i * 0.36) * direction;
-      bullets.push({
-        x: originX, y: originY,
-        vx: Math.cos(angle) * 8.2 * direction,
-        vy: Math.sin(angle) * 8.2,
-        owner: side, life: 100
-      });
-    }
-    shotgunEffect = { side, x: originX, y: originY, age: 0 };
-    ui.status.textContent = `${side === 'left' ? 'Player 1' : (mode === 'cpu' ? 'Computer' : 'Player 2')} fired the shotgun!`;
-  }
-
-  function updateBullets(dt) {
-    if (leftStunTimer > 0) leftStunTimer = Math.max(0, leftStunTimer - dt);
-    if (rightStunTimer > 0) rightStunTimer = Math.max(0, rightStunTimer - dt);
-    if (shotgunEffect) {
-      shotgunEffect.age += dt;
-      if (shotgunEffect.age > 24) shotgunEffect = null;
-    }
-
-    bullets = bullets.filter(b => {
-      b.x += b.vx * dt;
-      b.y += b.vy * dt;
-      b.life -= dt;
-      if (b.y < 0 || b.y > H || b.x < 0 || b.x > W || b.life <= 0) return false;
-
-      const targetSide = b.owner === 'left' ? 'right' : 'left';
-      const targetX = targetSide === 'left' ? 34 : W - 34 - paddle.w;
-      const targetY = targetSide === 'left' ? leftY : rightY;
-      const targetH = (targetSide === 'left' ? leftPowerTimer : rightPowerTimer) > 0 ? 150 : 108;
-      if (b.x >= targetX - 4 && b.x <= targetX + paddle.w + 4 &&
-          b.y >= targetY && b.y <= targetY + targetH) {
-        if (targetSide === 'left') leftStunTimer = 42;
-        else rightStunTimer = 42;
-        return false;
-      }
-      return true;
+  // One shot, five pellets in a spread. Each pellet can be dodged.
+  for (let i = 0; i < 5; i++) {
+    const angle = -0.72 + i * 0.36;
+    bullets.push({
+      x, y,
+      vx: Math.cos(angle) * 8.2 * direction,
+      vy: Math.sin(angle) * 8.2,
+      owner: side,
+      life: 115
     });
   }
 
-  function update(dt) {
-    movePaddles(dt);
+  gunEffect = { side, x, y, age: 0 };
+  $("status").textContent = `${side === "left" ? "Player 1" : "Player 2"} fired!`;
+}
 
-    if (leftPowerTimer > 0) {
-      leftPowerTimer = Math.max(0, leftPowerTimer - dt);
+function updateBullets(dt) {
+  leftStun = Math.max(0, leftStun - dt / 60);
+  rightStun = Math.max(0, rightStun - dt / 60);
+
+  if (gunEffect) {
+    gunEffect.age += dt;
+    if (gunEffect.age > 25) gunEffect = null;
+  }
+
+  bullets = bullets.filter(b => {
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.life -= dt;
+
+    if (b.x < 0 || b.x > W || b.y < 0 || b.y > H || b.life <= 0) return false;
+
+    const target = b.owner === "left" ? "right" : "left";
+    const px = target === "left" ? 34 : W - 48;
+    const py = target === "left" ? leftY : rightY;
+    const ph = paddleHeight(target);
+
+    if (b.x >= px - 4 && b.x <= px + PADDLE_W + 4 &&
+        b.y >= py && b.y <= py + ph) {
+      // A hit stuns the opponent for 0.7 seconds.
+      if (target === "left") leftStun = 0.7;
+      else rightStun = 0.7;
+      return false;
     }
+    return true;
+  });
+}
 
-    if (rightPowerTimer > 0) {
-      rightPowerTimer = Math.max(0, rightPowerTimer - dt);
+function hitPaddle(side, px, py, dt) {
+  const ph = paddleHeight(side);
+  const overlapsX = side === "left"
+    ? ball.x - BALL_R <= px + PADDLE_W && ball.x > px
+    : ball.x + BALL_R >= px && ball.x < px + PADDLE_W;
+
+  const overlapsY = ball.y + BALL_R >= py && ball.y - BALL_R <= py + ph;
+  if (!overlapsX || !overlapsY) return;
+
+  if (side === "left" && ball.vx < 0) {
+    const rel = (ball.y - (py + ph / 2)) / (ph / 2);
+    const speed = Math.min(Math.hypot(ball.vx, ball.vy) * 1.045 + 0.15, 12.5);
+    ball.vx = Math.cos(rel * 1.0) * speed;
+    ball.vy = Math.sin(rel * 1.0) * speed;
+    rallyHits++;
+  } else if (side === "right" && ball.vx > 0) {
+    const rel = (ball.y - (py + ph / 2)) / (ph / 2);
+    const speed = Math.min(Math.hypot(ball.vx, ball.vy) * 1.045 + 0.15, 12.5);
+    ball.vx = -Math.cos(rel * 1.0) * speed;
+    ball.vy = Math.sin(rel * 1.0) * speed;
+    rallyHits++;
+  }
+}
+
+function update(dt) {
+  movePaddles(dt);
+
+  leftBig = Math.max(0, leftBig - dt / 60);
+  rightBig = Math.max(0, rightBig - dt / 60);
+
+  // Return the ball to its original speed every 95 seconds.
+  speedResetTimer -= dt / 60;
+  if (speedResetTimer <= 0) {
+    const speed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_SPEED;
+    ball.vx = ball.vx / speed * ORIGINAL_SPEED;
+    ball.vy = ball.vy / speed * ORIGINAL_SPEED;
+    speedResetTimer = 95;
+  }
+
+  updateBullets(dt);
+
+  ball.x += ball.vx * dt;
+  ball.y += ball.vy * dt;
+
+  if (ball.y - BALL_R < 0) {
+    ball.y = BALL_R;
+    ball.vy = Math.abs(ball.vy);
+  }
+  if (ball.y + BALL_R > H) {
+    ball.y = H - BALL_R;
+    ball.vy = -Math.abs(ball.vy);
+  }
+
+  hitPaddle("left", 34, leftY, dt);
+  hitPaddle("right", W - 48, rightY, dt);
+
+  if (ball.x + BALL_R < 0) scorePoint("right");
+  else if (ball.x - BALL_R > W) scorePoint("left");
+
+  if (powerUp) {
+    powerUp.life -= dt / 60;
+    if (powerUp.life <= 0) {
+      powerUp = null;
+      powerSpawnTimer = randomPowerDelay();
     }
+  } else {
+    powerSpawnTimer -= dt / 60;
+    if (powerSpawnTimer <= 0) spawnPowerUp();
+  }
 
-    nextSpeedReset -= dt;
-    if (nextSpeedReset <= 0) {
-      const currentSpeed = Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
-      ball.vx = (ball.vx / currentSpeed) * ORIGINAL_BALL_SPEED;
-      ball.vy = (ball.vy / currentSpeed) * ORIGINAL_BALL_SPEED;
-      nextSpeedReset = 95 * 60;
-    }
+  checkPowerUpPickup();
+}
 
-    updateBullets(dt);
-    previousBallX = ball.x;
-    previousBallY = ball.y;
-    ball.x += ball.vx * dt;
-    ball.y += ball.vy * dt;
+function pixelShotgun(x, y, rotation, alpha = 1) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
+  const p = 3;
 
-    if (ball.y - ballRadius < 0) {
-      ball.y = ballRadius;
-      ball.vy = Math.abs(ball.vy);
-    }
-    if (ball.y + ballRadius > H) {
-      ball.y = H - ballRadius;
-      ball.vy = -Math.abs(ball.vy);
-    }
+  // Small chunky pixel-art shotgun.
+  ctx.fillStyle = "#252525";
+  ctx.fillRect(-2*p, -5*p, 8*p, 3*p);
+  ctx.fillStyle = "#999";
+  ctx.fillRect(0, -4*p, 6*p, p);
+  ctx.fillStyle = "#ddd";
+  ctx.fillRect(4*p, -5*p, 2*p, p);
+  ctx.fillStyle = "#111";
+  ctx.fillRect(5*p, -2*p, 2*p, p);
+  ctx.fillStyle = "#754323";
+  ctx.fillRect(-4*p, -2*p, 5*p, 3*p);
+  ctx.fillStyle = "#a86a39";
+  ctx.fillRect(-3*p, -2*p, 3*p, p);
 
-    const leftX = 34;
-    const rightX = W - 34 - paddle.w;
+  ctx.restore();
+}
 
-    let hit = collidePaddle(
-      ball.x, ball.y, ball.vx, ball.vy, leftX, leftY, true
-    );
+function draw() {
+  ctx.fillStyle = "#080808";
+  ctx.fillRect(0, 0, W, H);
 
-    ball.vx = hit.vx;
-    ball.vy = hit.vy;
+  // Subtle background grid.
+  ctx.strokeStyle = "rgba(255,255,255,.035)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 48) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += 48) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
 
-    hit = collidePaddle(
-      ball.x, ball.y, ball.vx, ball.vy, rightX, rightY, false
-    );
+  ctx.setLineDash([12, 14]);
+  ctx.strokeStyle = "#666";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(W/2, 20);
+  ctx.lineTo(W/2, H-20);
+  ctx.stroke();
+  ctx.setLineDash([]);
 
-    ball.vx = hit.vx;
-    ball.vy = hit.vy;
+  ctx.strokeStyle = "#333";
+  ctx.beginPath();
+  ctx.arc(W/2, H/2, 80, 0, Math.PI*2);
+  ctx.stroke();
 
-    if (powerUp) {
-      powerUp.life -= dt;
+  ctx.fillStyle = leftStun > 0 ? "#888" : "#fff";
+  ctx.fillRect(34, leftY, PADDLE_W, paddleHeight("left"));
 
-      if (powerUp.life <= 0) {
-        powerUp = null;
-        scheduleNextPowerUp();
-      }
+  ctx.fillStyle = rightStun > 0 ? "#888" : "#bbb";
+  ctx.fillRect(W-48, rightY, PADDLE_W, paddleHeight("right"));
+
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(ball.x-6, ball.y-6, 12, 12);
+
+  // Pixelated power-up. Arrow = big paddle, gun = shotgun.
+  if (powerUp) {
+    const x = Math.round(powerUp.x), y = Math.round(powerUp.y), p = 4;
+    ctx.fillStyle = "#168cff";
+    ctx.fillRect(x-2*p, y-4*p, 4*p, 8*p);
+    ctx.fillRect(x-3*p, y-3*p, 6*p, 6*p);
+    ctx.fillRect(x-4*p, y-2*p, 8*p, 4*p);
+    ctx.fillStyle = "#fff";
+
+    if (powerUp.type === "grow") {
+      ctx.fillRect(x-p, y-3*p, 2*p, 2*p);
+      ctx.fillRect(x-2*p, y-2*p, p, p);
+      ctx.fillRect(x+p, y-2*p, p, p);
+      ctx.fillRect(x-p, y-p, 2*p, 4*p);
     } else {
-      nextPowerUpSpawn -= dt;
-
-      if (nextPowerUpSpawn <= 0) {
-        spawnPowerUp();
-      }
-    }
-
-    checkPowerUpCollection();
-
-    if (ball.x + ballRadius < 0) {
-      scorePoint('right');
-    } else if (ball.x - ballRadius > W) {
-      scorePoint('left');
+      ctx.fillRect(x-2*p, y-p, 5*p, p);
+      ctx.fillRect(x+p, y-2*p, 2*p, p);
+      ctx.fillRect(x-2*p, y, 2*p, 2*p);
     }
   }
 
-  function drawRoundedRect(x, y, w, h, r, color, glow) {
-    ctx.save();
-    ctx.shadowColor = glow || color;
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(x, y, w, h);
-    ctx.fill();
-    ctx.restore();
-  }
+  if (leftGun) pixelShotgun(51, leftY + paddleHeight("left")/2, 0);
+  if (rightGun) pixelShotgun(W-51, rightY + paddleHeight("right")/2, Math.PI);
 
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
+  // Spin the shotgun and disintegrate it into pixels after firing.
+  if (gunEffect) {
+    const age = gunEffect.age;
+    const alpha = Math.max(0, 1 - age/25);
+    pixelShotgun(gunEffect.x, gunEffect.y, age/25 * Math.PI*8, alpha);
 
-    ctx.fillStyle = '#080808';
-    ctx.fillRect(0, 0, W, H);
-
-    // Subtle court grid.
-    ctx.save();
-
-    ctx.strokeStyle = 'rgba(255,255,255,.035)';
-    ctx.lineWidth = 1;
-
-    for (let x = 0; x < W; x += 48) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, H);
-      ctx.stroke();
-    }
-
-    for (let y = 0; y < H; y += 48) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(W, y);
-      ctx.stroke();
-    }
-
-    ctx.restore();
-
-    // Center line and circle.
-    ctx.save();
-
-    ctx.setLineDash([12, 14]);
-    ctx.strokeStyle = 'rgba(255,255,255,.38)';
-    ctx.lineWidth = 4;
-
-    ctx.beginPath();
-    ctx.moveTo(W / 2, 24);
-    ctx.lineTo(W / 2, H - 24);
-    ctx.stroke();
-
-    ctx.setLineDash([]);
-    ctx.strokeStyle = 'rgba(255,255,255,.12)';
-    ctx.lineWidth = 3;
-
-    ctx.beginPath();
-    ctx.arc(W / 2, H / 2, 82, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.restore();
-
-    drawRoundedRect(
-      34,
-      leftY,
-      paddle.w,
-      leftPowerTimer > 0 ? 150 : 108,
-      0,
-      '#f5f5f5',
-      '#f5f5f5'
-    );
-
-    drawRoundedRect(
-      W - 34 - paddle.w,
-      rightY,
-      paddle.w,
-      rightPowerTimer > 0 ? 150 : 108,
-      0,
-      '#bdbdbd',
-      '#bdbdbd'
-    );
-
-    // Smooth-moving square ball.
-    ctx.save();
-
-    ctx.shadowColor = '#fff';
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#fff';
-
-    ctx.fillRect(ball.x - 6, ball.y - 6, 12, 12);
-
-    ctx.restore();
-
-    // Blue pixelated power-up with a white up arrow.
-    if (powerUp) {
-      const cx = Math.round(powerUp.x);
-      const cy = Math.round(powerUp.y);
-      const p = 4;
-
-      ctx.save();
-      ctx.shadowBlur = 0;
-
-      // Stepped pixel circle.
-      ctx.fillStyle = '#168cff';
-
-      ctx.fillRect(cx - 2 * p, cy - 4 * p, 4 * p, 8 * p);
-      ctx.fillRect(cx - 3 * p, cy - 3 * p, 6 * p, 6 * p);
-      ctx.fillRect(cx - 4 * p, cy - 2 * p, 8 * p, 4 * p);
-
-      // White symbol: arrow for BIG PADDLE, tiny gun silhouette for shotgun.
-      ctx.fillStyle = '#ffffff';
-      if (powerUp.type === 'grow') {
-        ctx.fillRect(cx - p, cy - 3 * p, 2 * p, 2 * p);
-        ctx.fillRect(cx - 2 * p, cy - 2 * p, p, p);
-        ctx.fillRect(cx + p, cy - 2 * p, p, p);
-        ctx.fillRect(cx - p, cy - p, 2 * p, 4 * p);
-      } else {
-        ctx.fillRect(cx - 2 * p, cy - p, 5 * p, p);
-        ctx.fillRect(cx + p, cy - 2 * p, 2 * p, p);
-        ctx.fillRect(cx - 2 * p, cy, 2 * p, 2 * p);
-      }
-
-      ctx.restore();
-    }
-
-    // Tiny pixel-art shotgun, spinning and disintegrating after firing.
-    function drawShotgun(side, x, y, angle = 0, alpha = 1) {
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(x, y);
-      ctx.rotate(angle);
-      const px = 3;
-      // Barrel points toward the opponent; each rectangle is a chunky pixel.
-      ctx.fillStyle = '#252525'; ctx.fillRect(-2 * px, -5 * px, 8 * px, 3 * px);
-      ctx.fillStyle = '#777'; ctx.fillRect(0, -4 * px, 6 * px, px);
-      ctx.fillStyle = '#bdbdbd'; ctx.fillRect(4 * px, -5 * px, 2 * px, px);
-      ctx.fillStyle = '#111'; ctx.fillRect(5 * px, -2 * px, 2 * px, px);
-      ctx.fillStyle = '#754323'; ctx.fillRect(-4 * px, -2 * px, 5 * px, 3 * px);
-      ctx.fillStyle = '#a86a39'; ctx.fillRect(-3 * px, -2 * px, 3 * px, px);
-      ctx.fillStyle = '#d6d6d6'; ctx.fillRect(-px, -5 * px, px, px);
-      ctx.restore();
-    }
-
-    if (leftShotgun) drawShotgun('left', 50, leftY + (leftPowerTimer > 0 ? 75 : 54), 0);
-    if (rightShotgun) drawShotgun('right', W - 50, rightY + (rightPowerTimer > 0 ? 75 : 54), Math.PI);
-
-    if (shotgunEffect) {
-      const side = shotgunEffect.side;
-      const baseAngle = (shotgunEffect.age / 24) * Math.PI * 8;
-      const alpha = Math.max(0, 1 - shotgunEffect.age / 24);
-      drawShotgun(side, shotgunEffect.x, shotgunEffect.y, baseAngle, alpha);
-      ctx.fillStyle = `rgba(230,230,230,${alpha})`;
-      for (let i = 0; i < 10; i++) {
-        const a = i * 2.399 + shotgunEffect.age * 0.35;
-        const distance = shotgunEffect.age * (1.5 + (i % 3) * 0.35);
-        ctx.fillRect(shotgunEffect.x + Math.cos(a) * distance, shotgunEffect.y + Math.sin(a) * distance, 3, 3);
-      }
-    }
-
-    // Shotgun pellets.
-    ctx.fillStyle = '#f5f5f5';
-    for (const b of bullets) {
-      ctx.fillRect(b.x - 3, b.y - 3, 6, 6);
-      ctx.fillRect(b.x - 1, b.y - 5, 2, 10);
-    }
-
-    // Rally counter.
-    ctx.fillStyle = 'rgba(218,225,255,.55)';
-    ctx.font = '700 13px system-ui';
-    ctx.textAlign = 'center';
-    ctx.fillText(`RALLY ${rallyHits}`, W / 2, H - 16);
-  }
-
-  function loop(now) {
-    animationId = requestAnimationFrame(loop);
-
-    const dt = Math.min((now - lastTime) / 16.667, 2);
-    lastTime = now;
-
-    if (running && !paused && !gameOver) {
-      update(dt);
-    }
-
-    draw();
-  }
-
-  function setMode(nextMode) {
-    mode = nextMode;
-
-    ui.cpuMode.classList.toggle('active', mode === 'cpu');
-    ui.twoMode.classList.toggle('active', mode === 'two');
-
-    ui.rightName.textContent = mode === 'cpu'
-      ? `CPU (${ui.difficulty.value})`
-      : 'Player 2';
-
-    ui.difficulty.disabled = mode !== 'cpu';
-
-    ui.rightControls.innerHTML = mode === 'cpu'
-      ? '<kbd>↑</kbd> / <kbd>↓</kbd> controls are handled by the computer'
-      : '<kbd>↑</kbd> move up · <kbd>↓</kbd> move down · <kbd>←</kbd> fire shotgun';
-
-    resetGame(false);
-  }
-
-  document.addEventListener('keydown', event => {
-    const key = event.key;
-
-    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', ' '].includes(key)) {
-      event.preventDefault();
-    }
-
-    keys.add(key);
-
-    if (!event.repeat && (key === 'd' || key === 'D')) fireShotgun('left');
-    if (!event.repeat && key === 'ArrowLeft' && mode === 'two') fireShotgun('right');
-
-    if (key === ' ' && !event.repeat) {
-      if (gameOver || !running) startGame();
-      else pauseGame();
-    }
-
-    if (key === 'Enter' && !running) startGame();
-  });
-
-  document.addEventListener('keyup', event => keys.delete(event.key));
-
-  window.addEventListener('blur', () => keys.clear());
-
-  ui.cpuMode.addEventListener('click', () => setMode('cpu'));
-  ui.twoMode.addEventListener('click', () => setMode('two'));
-  ui.start.addEventListener('click', startGame);
-
-  ui.overlayStart.addEventListener('click', () => {
-    if (paused && running) pauseGame();
-    else if (gameOver) resetGame(true);
-    else startGame();
-  });
-
-  ui.pause.addEventListener('click', pauseGame);
-  ui.restart.addEventListener('click', () => resetGame(false));
-
-  ui.winScore.addEventListener('change', () => {
-    if (!gameOver) {
-      ui.status.textContent = `First to ${ui.winScore.value} points wins.`;
-    }
-
-    if (!running) {
-      showOverlay(
-        'Ready to rally?',
-        `First to ${ui.winScore.value} points wins!`
+    ctx.fillStyle = `rgba(230,230,230,${alpha})`;
+    for (let i = 0; i < 12; i++) {
+      const angle = i*2.399 + age*0.35;
+      const distance = age*(1.5 + (i%3)*0.35);
+      ctx.fillRect(
+        gunEffect.x + Math.cos(angle)*distance,
+        gunEffect.y + Math.sin(angle)*distance,
+        3, 3
       );
     }
-  });
+  }
 
-  ui.difficulty.addEventListener('change', () => {
-    const labels = {
-      easy: 'Easy',
-      medium: 'Medium',
-      hard: 'Hard'
-    };
+  // Five separate, dodgeable pellets.
+  ctx.fillStyle = "#fff";
+  for (const b of bullets) {
+    ctx.fillRect(b.x-3, b.y-3, 6, 6);
+  }
 
-    if (mode === 'cpu') {
-      ui.rightName.textContent = `CPU (${ui.difficulty.value})`;
-      ui.status.textContent =
-        `${labels[ui.difficulty.value]} computer difficulty selected.`;
-    }
-  });
+  ctx.fillStyle = "#aaa";
+  ctx.font = "bold 13px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`RALLY ${rallyHits}`, W/2, H-15);
+}
 
-  // Draw the court before the first animation frame.
-  draw();
+function loop(now) {
   animationId = requestAnimationFrame(loop);
+  const dt = Math.min((now-lastTime)/16.667, 2);
+  lastTime = now;
+  if (running && !paused && !gameOver) update(dt);
+  draw();
+}
+
+function setMode(next) {
+  mode = next;
+  $("cpu").classList.toggle("active", mode === "cpu");
+  $("two").classList.toggle("active", mode === "two");
+  $("difficulty").disabled = mode !== "cpu";
+  $("rightName").textContent = mode === "cpu" ? `CPU (${ $("difficulty").value })` : "PLAYER 2";
+  $("rightHelpTitle").textContent = mode === "cpu" ? "RIGHT — COMPUTER" : "PLAYER 2 — RIGHT";
+  resetGame(false);
+}
+
+document.addEventListener("keydown", e => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", " "].includes(e.key)) e.preventDefault();
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  keys.add(key);
+
+  if (!e.repeat && key === "d") fireShotgun("left");
+  if (!e.repeat && key === "ArrowLeft" && mode === "two") fireShotgun("right");
+
+  if (!e.repeat && key === " " ) {
+    if (!running || gameOver) startGame();
+    else pauseGame();
+  }
+  if (!e.repeat && key === "Enter" && !running) startGame();
+});
+
+document.addEventListener("keyup", e => {
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  keys.delete(key);
+});
+window.addEventListener("blur", () => keys.clear());
+
+$("cpu").addEventListener("click", () => setMode("cpu"));
+$("two").addEventListener("click", () => setMode("two"));
+$("start").addEventListener("click", startGame);
+$("pause").addEventListener("click", pauseGame);
+$("restart").addEventListener("click", () => resetGame(false));
+
+$("overlayStart").addEventListener("click", () => {
+  if (paused && running) pauseGame();
+  else if (gameOver) resetGame(true);
+  else startGame();
+});
+
+$("difficulty").addEventListener("change", () => {
+  if (mode === "cpu") $("rightName").textContent = `CPU (${ $("difficulty").value })`;
+});
+
+$("winScore").addEventListener("change", () => {
+  if (!running) showOverlay("READY TO RALLY?", `First to ${$("winScore").value} points wins!`);
+});
+
+resetBall();
+draw();
+animationId = requestAnimationFrame(loop);
 })();
 </script>
 </body>
