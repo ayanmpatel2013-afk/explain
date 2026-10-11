@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ILLEGAL PONG — SONGS & SETTINGS FIX</title>
+<title>ILLEGAL PONG — COLLAPSIBLE SETTINGS</title>
 <style>
   :root {
     --bg: #080808;
@@ -311,12 +311,12 @@
   <header>
     <div class="eyebrow">Retro • Neon • Arcade</div>
     <h1>ILLEGAL <span>PONG</span></h1>
-    <p class="subtitle">Two paddles. One ball. Music controls are at the very top of the game.</p>
+    <p class="subtitle">Two paddles. One ball. Open ⚙ Settings whenever you want to change music.</p>
   </header>
 
-    <div id="settingsPanel" class="settings-panel open" style="display:block!important;border:4px solid #fff;background:#171717;padding:18px;margin:0 0 18px;position:relative;z-index:5" aria-label="Settings">
-      <h2>⚙ SETTINGS & MUSIC — CHOOSE YOUR SONG HERE</h2>
-      <p>This box is always visible. Pick Song 1 or Song 2 below, then press Play Music. Choose a song and press Play Music. Both songs loop continuously; Song 2 is built into this HTML file.</p>
+    <div id="settingsPanel" class="settings-panel" aria-label="Settings">
+      <h2>⚙ Settings & Music</h2>
+      <p>Choose a song and press Play Music. Music loops continuously; Song 2 is built into this HTML file.</p>
       <label for="musicChoice">🎵 Choose music</label>
       <select id="musicChoice" aria-label="Choose music" style="display:block;width:100%;max-width:560px;margin:8px 0 12px">
         <option value="lift">Song 1 — DOORS But Bad Lift Jam</option>
@@ -360,7 +360,7 @@
         <button id="startBtn" class="primary" type="button">▶ Start Game</button>
         <button id="pauseBtn" type="button">Ⅱ Pause</button>
         <button id="restartBtn" type="button">↻ Restart</button>
-        <button id="settingsBtn" class="primary" type="button" aria-expanded="true" aria-controls="settingsPanel">⚙ Settings & Music (shown above)</button>
+        <button id="settingsBtn" type="button" aria-expanded="false" aria-controls="settingsPanel">⚙ Settings</button>
       </div>
     </div>
 
