@@ -347,6 +347,7 @@
           <option value="easy">Easy Bot</option>
           <option value="medium" selected>Medium Bot</option>
           <option value="hard">Hard Bot</option>
+          <option value="insane">💀 Insane Bot</option>
         </select>
 
         <label for="winScore" class="sr-only">Points to win</label>
@@ -509,6 +510,33 @@
   const paddle = { w: 14, h: 108, speed: 7.4 };
   const ballRadius = 10;
 
+  // Short retro beep whenever the ball hits a paddle.
+  let hitSoundContext = null;
+  function playPaddleHitSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!hitSoundContext) hitSoundContext = new AudioCtx();
+      if (hitSoundContext.state === 'suspended') hitSoundContext.resume();
+
+      const now = hitSoundContext.currentTime;
+      const oscillator = hitSoundContext.createOscillator();
+      const gain = hitSoundContext.createGain();
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(520, now);
+      oscillator.frequency.exponentialRampToValueAtTime(260, now + 0.065);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.12, now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
+      oscillator.connect(gain);
+      gain.connect(hitSoundContext.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.08);
+    } catch (error) {
+      // Keep the game running if browser audio is unavailable.
+    }
+  }
+
   let mode = 'cpu';
   let leftY = H / 2 - paddle.h / 2;
   let rightY = H / 2 - paddle.h / 2;
@@ -606,6 +634,13 @@
   }
 
   function startGame() {
+    // Create/resume audio during the Start button gesture for browser permission.
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx && !hitSoundContext) hitSoundContext = new AudioCtx();
+      if (hitSoundContext && hitSoundContext.state === 'suspended') hitSoundContext.resume();
+    } catch (error) { /* Audio is optional; gameplay should never be blocked. */ }
+
     if (gameOver) resetGame(false);
 
     running = true;
@@ -704,21 +739,35 @@
       const settings = {
         easy:   { speed: 3.0, error: 88, reaction: 0.72 },
         medium: { speed: 4.8, error: 34, reaction: 0.88 },
-        hard:   { speed: 6.8, error: 7, reaction: 1.00 }
+        hard:   { speed: 6.8, error: 7, reaction: 1.00 },
+        insane: { speed: 12.0, error: 0, reaction: 1.18 }
       }[difficulty];
 
-      const wobble = Math.sin(
+      let prediction;
+      if (difficulty === 'insane' && ball.vx > 0) {
+        // Predict where the ball will reach the CPU paddle, including wall bounces.
+        const cpuPaddleX = W - 34 - paddle.w;
+        const travelTime = Math.max(0, (cpuPaddleX - ball.x) / Math.max(0.01, ball.vx));
+        const top = ballRadius;
+        const bottom = H - ballRadius;
+        const span = bottom - top;
+        const raw = ball.y + ball.vy * travelTime - top;
+        const folded = ((raw % (2 * span)) + (2 * span)) % (2 * span);
+        prediction = top + (folded <= span ? folded : 2 * span - folded);
+      } else {
+        prediction = ball.y + ball.vy *
+          (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
+      }
+
+      const wobble = difficulty === 'insane' ? 0 : Math.sin(
         performance.now() / (difficulty === 'easy' ? 190 : 320)
       ) * settings.error * 0.22;
 
-      const prediction = ball.y + ball.vy *
-        (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
-
-      const target = prediction - paddle.h / 2 + wobble;
+      const target = prediction - (rightHeight / 2) + wobble;
       const diff = target - rightY;
       const cpuSpeed = settings.speed * dt;
 
-      if (Math.abs(diff) > 5) {
+      if (Math.abs(diff) > (difficulty === 'insane' ? 1 : 5)) {
         rightY += Math.sign(diff) * Math.min(
           Math.abs(diff) * settings.reaction,
           cpuSpeed
@@ -759,6 +808,7 @@
     const nextVy = Math.sin(angle) * speed;
 
     rallyHits++;
+    playPaddleHitSound();
 
     return { vx: nextVx, vy: nextVy };
   }
