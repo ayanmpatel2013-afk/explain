@@ -347,7 +347,7 @@
           <option value="easy">Easy Bot</option>
           <option value="medium" selected>Medium Bot</option>
           <option value="hard">Hard Bot</option>
-          <option value="insane">💀 Insane Bot</option>
+          <option value="impossible">💀 Impossible Bot</option>
         </select>
 
         <label for="winScore" class="sr-only">Points to win</label>
@@ -740,11 +740,11 @@
         easy:   { speed: 3.0, error: 88, reaction: 0.72 },
         medium: { speed: 4.8, error: 34, reaction: 0.88 },
         hard:   { speed: 6.8, error: 7, reaction: 1.00 },
-        insane: { speed: 12.0, error: 0, reaction: 1.18 }
+        impossible: { speed: 12.0, error: 0, reaction: 1.18 }
       }[difficulty];
 
       let prediction;
-      if (difficulty === 'insane' && ball.vx > 0) {
+      if (difficulty === 'impossible' && ball.vx > 0) {
         // Predict where the ball will reach the CPU paddle, including wall bounces.
         const cpuPaddleX = W - 34 - paddle.w;
         const travelTime = Math.max(0, (cpuPaddleX - ball.x) / Math.max(0.01, ball.vx));
@@ -759,7 +759,7 @@
           (difficulty === 'hard' ? 5 : difficulty === 'medium' ? 2.5 : 0.5);
       }
 
-      const wobble = difficulty === 'insane' ? 0 : Math.sin(
+      const wobble = difficulty === 'impossible' ? 0 : Math.sin(
         performance.now() / (difficulty === 'easy' ? 190 : 320)
       ) * settings.error * 0.22;
 
@@ -767,7 +767,7 @@
       const diff = target - rightY;
       const cpuSpeed = settings.speed * dt;
 
-      if (Math.abs(diff) > (difficulty === 'insane' ? 1 : 5)) {
+      if (Math.abs(diff) > (difficulty === 'impossible' ? 1 : 5)) {
         rightY += Math.sign(diff) * Math.min(
           Math.abs(diff) * settings.reaction,
           cpuSpeed
@@ -1351,7 +1351,8 @@
     const labels = {
       easy: 'Easy',
       medium: 'Medium',
-      hard: 'Hard'
+      hard: 'Hard',
+      impossible: 'Impossible'
     };
 
     if (mode === 'cpu') {
