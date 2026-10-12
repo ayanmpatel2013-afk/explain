@@ -514,11 +514,6 @@
   let rightY = H / 2 - paddle.h / 2;
   let ball = { x: W / 2, y: H / 2, vx: 3.6, vy: 1.6 };
 
-  const ORIGINAL_BALL_SPEED = Math.hypot(3.6, 1.6);
-
-  // Reset the ball to its original speed every 95 seconds of active play.
-  let nextSpeedReset = 95 * 60;
-
   let leftPoints = 0;
   let rightPoints = 0;
   let running = false;
@@ -591,7 +586,6 @@
     paused = false;
     gameOver = false;
     clearRoundUpgrades();
-    nextSpeedReset = 95 * 60;
 
     ui.pause.textContent = 'Ⅱ Pause';
 
@@ -758,7 +752,8 @@
       (y - (paddleY + paddleHeight / 2)) / (paddleHeight / 2);
 
     const angle = relative * 1.0;
-    const speed = Math.min(Math.hypot(vx, vy) * 1.045 + 0.15, 12.5);
+    // No maximum speed cap: every paddle hit makes the ball faster.
+    const speed = Math.hypot(vx, vy) * 1.045 + 0.15;
 
     const nextVx = (isLeft ? 1 : -1) * Math.cos(angle) * speed;
     const nextVy = Math.sin(angle) * speed;
@@ -854,15 +849,15 @@
 
     // One trigger fires exactly five pellets in a spread toward the opponent.
     for (let i = 0; i < 5; i++) {
-      const angle = (-0.72 + i * 0.36) * direction;
+      const angle = (-0.48 + i * 0.24) * direction; // tighter spread: pellets closer together
 
       bullets.push({
         x: originX,
         y: originY,
-        vx: Math.cos(angle) * 8.2 * direction,
-        vy: Math.sin(angle) * 8.2,
-        owner: side,
-        life: 100
+        // Faster pellets and a longer lifetime let the center pellets reach the far paddle.
+        vx: Math.cos(angle) * 9.2 * direction,
+        vy: Math.sin(angle) * 9.2,
+        owner: side
       });
     }
 
@@ -894,12 +889,11 @@
     bullets = bullets.filter(b => {
       b.x += b.vx * dt;
       b.y += b.vy * dt;
-      b.life -= dt;
-
+      // Pellets have no timer: a missed shot keeps travelling until it hits a wall.
+      const pelletRadius = 5;
       if (
-        b.y < 0 || b.y > H ||
-        b.x < 0 || b.x > W ||
-        b.life <= 0
+        b.y <= pelletRadius || b.y >= H - pelletRadius ||
+        b.x <= pelletRadius || b.x >= W - pelletRadius
       ) {
         return false;
       }
@@ -937,19 +931,6 @@
 
     if (rightPowerTimer > 0) {
       rightPowerTimer = Math.max(0, rightPowerTimer - dt);
-    }
-
-    // Restore the original ball speed every 95 seconds of active play.
-    nextSpeedReset -= dt;
-
-    if (nextSpeedReset <= 0) {
-      const currentSpeed =
-        Math.hypot(ball.vx, ball.vy) || ORIGINAL_BALL_SPEED;
-
-      ball.vx = (ball.vx / currentSpeed) * ORIGINAL_BALL_SPEED;
-      ball.vy = (ball.vy / currentSpeed) * ORIGINAL_BALL_SPEED;
-
-      nextSpeedReset = 95 * 60;
     }
 
     updateBullets(dt);
@@ -1213,8 +1194,9 @@
     ctx.fillStyle = '#f5f5f5';
 
     for (const b of bullets) {
-      ctx.fillRect(b.x - 3, b.y - 3, 6, 6);
-      ctx.fillRect(b.x - 1, b.y - 5, 2, 10);
+      // Slightly larger pixel-art shotgun pellets.
+      ctx.fillRect(b.x - 4, b.y - 4, 8, 8);
+      ctx.fillRect(b.x - 2, b.y - 6, 4, 12);
     }
 
     // Rally counter.
