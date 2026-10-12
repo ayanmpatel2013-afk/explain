@@ -1276,7 +1276,7 @@
     ui.twoMode.classList.toggle('active', mode === 'two');
 
     ui.rightName.textContent = mode === 'cpu'
-      ? `CPU (${ui.difficulty.value})`
+      ? `CPU (${({ easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', impossible: 'IMPOSSIBLE BOT' })[ui.difficulty.value] || 'IMPOSSIBLE BOT'})`
       : 'Player 2';
 
     ui.difficulty.disabled = mode !== 'cpu';
@@ -1356,7 +1356,7 @@
     };
 
     if (mode === 'cpu') {
-      ui.rightName.textContent = `CPU (${ui.difficulty.value})`;
+      ui.rightName.textContent = `CPU (${({ easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', impossible: 'IMPOSSIBLE BOT' })[ui.difficulty.value] || 'IMPOSSIBLE BOT'})`;
       ui.status.textContent =
         `${labels[ui.difficulty.value]} computer difficulty selected.`;
     }
