@@ -382,26 +382,7 @@
       </div>
     </div>
 
-    <section id="onlinePanel" class="panel" style="margin:0 0 14px">
-      <h2 style="margin:0 0 8px">🌐 Online Multiplayer</h2>
-      <p id="onlineStatus" style="color:#aaa;margin:0 0 10px">Find another player online. Both players must open this game.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:8px">
-        <button id="playOnlineBtn" class="primary" type="button">🌐 PLAY ONLINE</button>
-        <button id="cancelOnlineBtn" type="button" disabled>Cancel Search</button>
-      </div>
-      <div id="onlineVote" style="display:none;margin-top:12px">
-        <strong>🗳️ Vote for match length</strong>
-        <p style="color:#aaa;margin:6px 0 10px">Choose the score needed to win.</p>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <button class="voteChoice" data-score="3" type="button">First to 3</button>
-          <button class="voteChoice" data-score="5" type="button">First to 5</button>
-          <button class="voteChoice" data-score="7" type="button">First to 7</button>
-          <button class="voteChoice" data-score="10" type="button">First to 10</button>
-          <button class="voteChoice" data-score="15" type="button">First to 15</button>
-        </div>
-        <p id="voteStatus" style="color:#aaa"></p>
-      </div>
-    </section>
+
 
     <div class="game-wrap">
       <canvas id="game" width="960" height="540" aria-label="Pong playing field"></canvas>
@@ -429,6 +410,27 @@
         <span id="rightControls"><kbd>↑</kbd> move up · <kbd>↓</kbd> move down (CPU plays automatically in vs Computer)</span>
       </div>
     </div>
+
+    <section id="onlinePanel" class="panel" style="margin:0 0 14px">
+      <h2 style="margin:0 0 8px">🌐 Online Multiplayer</h2>
+      <p id="onlineStatus" style="color:#aaa;margin:0 0 10px">Find another player online. Both players must open this game.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button id="playOnlineBtn" class="primary" type="button">🌐 PLAY ONLINE</button>
+        <button id="cancelOnlineBtn" type="button" disabled>Cancel Search</button>
+      </div>
+      <div id="onlineVote" style="display:none;margin-top:12px">
+        <strong>🗳️ Vote for match length</strong>
+        <p style="color:#aaa;margin:6px 0 10px">Choose the score needed to win.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="voteChoice" data-score="3" type="button">First to 3</button>
+          <button class="voteChoice" data-score="5" type="button">First to 5</button>
+          <button class="voteChoice" data-score="7" type="button">First to 7</button>
+          <button class="voteChoice" data-score="10" type="button">First to 10</button>
+          <button class="voteChoice" data-score="15" type="button">First to 15</button>
+        </div>
+        <p id="voteStatus" style="color:#aaa"></p>
+      </div>
+    </section>
   </section>
 
   <p class="footer-note">Tip: keep your eye on the ball — each paddle hit makes the rally a little faster.</p>
