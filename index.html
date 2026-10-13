@@ -565,7 +565,9 @@
   const POWER_DURATION = 600;
 
   function scheduleNextPowerUp() {
-    nextPowerUpSpawn = (20 + Math.random() * 10) * 60;
+    nextPowerUpSpawn = (mode === 'cpu' && ui.difficulty.value === 'impossible')
+      ? 15 * 60
+      : (20 + Math.random() * 10) * 60;
   }
 
   function clearRoundUpgrades() {
@@ -977,7 +979,7 @@
         b.y >= targetY &&
         b.y <= targetY + targetH
       ) {
-        // Each pellet adds another full 1.2 seconds of stun.
+        // Each pellet stacks another full 1.2 seconds onto the existing stun.
         if (targetSide === 'left') leftStunTimer += 72;
         else rightStunTimer += 72;
 
@@ -1046,18 +1048,16 @@
       // Final Boss automatically fires one shotgun every 12 seconds.
       nextBossShot -= dt;
       if (nextBossShot <= 0) {
-        rightShotgun = true;
+        rightShotgun += 1;
         fireShotgun('right');
         nextBossShot = 12 * 60;
       }
     } else {
       nextBossShot = 12 * 60;
-      if (!powerUps.length) {
       nextPowerUpSpawn -= dt;
       if (nextPowerUpSpawn <= 0) {
         spawnPowerUp();
         scheduleNextPowerUp();
-      }
       }
     }
 
@@ -1312,6 +1312,8 @@
       : 'Player 2';
 
     ui.difficulty.disabled = mode !== 'cpu';
+    ui.winScore.value = (mode === 'cpu' && ui.difficulty.value === 'impossible') ? '3' : (ui.winScore.value === '3' ? '7' : ui.winScore.value);
+    ui.winScore.disabled = mode === 'cpu' && ui.difficulty.value === 'impossible';
 
     ui.rightControls.innerHTML = mode === 'cpu'
       ? '<kbd>↑</kbd> / <kbd>↓</kbd> controls are handled by the computer'
@@ -1367,6 +1369,9 @@
   ui.restart.addEventListener('click', () => resetGame(false));
 
   ui.winScore.addEventListener('change', () => {
+    if (mode === 'cpu' && ui.difficulty.value === 'impossible') {
+      ui.winScore.value = '3';
+    }
     if (!gameOver) {
       ui.status.textContent = `First to ${ui.winScore.value} points wins.`;
     }
@@ -1381,7 +1386,6 @@
 
   ui.difficulty.addEventListener('change', () => {
     if (mode === 'cpu' && ui.difficulty.value === 'impossible') ui.winScore.value = '3';
-    else if (ui.winScore.value === '3') ui.winScore.value = '7';
     powerUps = [];
     scheduleNextPowerUp();
     const labels = {
@@ -1397,6 +1401,12 @@
         `${labels[ui.difficulty.value]} difficulty selected.`;
     }
   });
+
+  // Enforce Final Boss rules on initial load as well as after difficulty changes.
+  if (mode === 'cpu' && ui.difficulty.value === 'impossible') {
+    ui.winScore.value = '3';
+    ui.winScore.disabled = true;
+  }
 
   // Draw the court before the first animation frame.
   draw();
