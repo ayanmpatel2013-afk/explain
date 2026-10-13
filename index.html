@@ -561,7 +561,6 @@
     onlineActive = false;
     onlineRole = null;
     onlineMatchId = null;
-    ui.pause.style.display = '';
     mode = 'cpu';
     ui.cpuMode.classList.add('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = false; ui.winScore.disabled = false;
@@ -582,17 +581,8 @@
       if (error) throw error;
       let match = Array.isArray(data) ? data[0] : data;
       if (typeof match === 'string') match = { id: match };
-      if (match && !match.id && match.match_id) match.id = match.match_id;
-      // Some RPC versions return only a match ID. Never treat that as a real
-      // match until we have fetched a row containing BOTH players and a live status.
-      if (match?.id && (!match.player_one || !match.player_two || !['voting','playing'].includes(match.status))) {
-        const { data: fullMatch, error: matchError } = await supabase.from('online_matches')
-          .select('id,player_one,player_two,status,target_score,created_at')
-          .eq('id', match.id).maybeSingle();
-        if (matchError) throw matchError;
-        match = fullMatch;
-      }
-      if (!match?.id || !match.player_one || !match.player_two || !['voting','playing'].includes(match.status)) {
+      if (!match?.id && match?.match_id) match.id = match.match_id;
+      if (!match?.id) {
         setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
         onlinePollHandle = setInterval(checkOnlineMatch, 1800);
         return;
@@ -610,7 +600,7 @@
       const { data, error } = await supabase.from('online_matches')
         .select('id,player_one,player_two,status,target_score')
         .or(`player_one.eq.${onlineUserId},player_two.eq.${onlineUserId}`)
-        .in('status', ['voting','playing']).not('player_two', 'is', null).order('created_at', { ascending: false }).limit(1);
+        .in('status', ['voting','playing']).order('created_at', { ascending: false }).limit(1);
       if (error) throw error;
       if (data?.length) {
         clearInterval(onlinePollHandle); onlinePollHandle = null;
@@ -619,21 +609,12 @@
     } catch (e) { setOnlineStatus('Still searching… (' + (e?.message || 'waiting for match') + ')'); }
   }
   async function attachOnlineMatch(match) {
-    // Defensive validation: a queue entry or incomplete RPC result is not a match.
-    if (!match?.id || !match.player_one || !match.player_two || !['voting','playing'].includes(match.status)) {
-      onlineMatchId = null;
-      onlineActive = false;
-      setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
-      if (!onlinePollHandle) onlinePollHandle = setInterval(checkOnlineMatch, 1800);
-      return;
-    }
     onlineVoteSent = false;
     document.querySelectorAll('.voteChoice').forEach(b => b.disabled = false);
     onlineMatchId = match.id;
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
     onlineActive = true;
     mode = 'online';
-    ui.pause.style.display = 'none';
     ui.cpuMode.classList.remove('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = true; ui.winScore.disabled = true;
     ui.leftName.textContent = 'Player 1'; ui.rightName.textContent = 'Player 2';
@@ -792,6 +773,8 @@
   let bullets = [];
   let shotgunEffect = null;
   let nextPowerUpSpawn = 25 * 60;
+  // In local two-player mode, alternate pickup sides so both players get fair chances.
+  let nextLocalPowerUpSide = 'left';
   let nextBossShot = 12 * 60;
   const POWER_DURATION = 600;
 
@@ -803,6 +786,7 @@
 
   function clearRoundUpgrades() {
     powerUps = [];
+    if (mode === 'two') nextLocalPowerUpSide = 'left';
     leftPowerTimer = rightPowerTimer = 0;
     leftShotgun = rightShotgun = 0;
     leftStunTimer = rightStunTimer = 0;
@@ -1060,9 +1044,15 @@
     const count = impossibleMode ? 3 : 1;
 
     for (let i = 0; i < count; i++) {
-      const side = mode === 'cpu'
-        ? 'left'
-        : (Math.random() < 0.5 ? 'left' : 'right');
+      let side;
+      if (mode === 'cpu') {
+        side = 'left';
+      } else if (mode === 'two') {
+        side = nextLocalPowerUpSide;
+        nextLocalPowerUpSide = nextLocalPowerUpSide === 'left' ? 'right' : 'left';
+      } else {
+        side = Math.random() < 0.5 ? 'left' : 'right';
+      }
       const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
       // Keep three pickups separated vertically in Impossible mode.
       const y = impossibleMode
@@ -1542,7 +1532,7 @@
           lastStateSent = now;
           broadcastOnline('input', { rightY: remoteRightY });
         }
-      } else if (onlineRole === 'player_one' && now - lastStateSent > 45) { // Throttle broadcasts to avoid flooding the realtime channel.
+      } else if (onlineRole === 'player_one' && now - lastStateSent > 45) {
         lastStateSent = now;
         broadcastOnline('state', {
           leftY, rightY, ball: { x: ball.x, y: ball.y, vx: ball.vx, vy: ball.vy },
@@ -1627,10 +1617,7 @@
     }
   });
 
-  ui.pause.addEventListener('click', () => {
-    if (onlineActive) return;
-    pauseGame();
-  });
+  ui.pause.addEventListener('click', pauseGame);
   ui.restart.addEventListener('click', () => resetGame(false));
 
   ui.winScore.addEventListener('change', () => {
