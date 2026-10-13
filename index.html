@@ -561,6 +561,7 @@
     onlineActive = false;
     onlineRole = null;
     onlineMatchId = null;
+    ui.pause.style.display = '';
     mode = 'cpu';
     ui.cpuMode.classList.add('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = false; ui.winScore.disabled = false;
@@ -615,6 +616,7 @@
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
     onlineActive = true;
     mode = 'online';
+    ui.pause.style.display = 'none';
     ui.cpuMode.classList.remove('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = true; ui.winScore.disabled = true;
     ui.leftName.textContent = 'Player 1'; ui.rightName.textContent = 'Player 2';
@@ -1523,7 +1525,7 @@
           lastStateSent = now;
           broadcastOnline('input', { rightY: remoteRightY });
         }
-      } else if (onlineRole === 'player_one' && now - lastStateSent > 45) {
+      } else if (onlineRole === 'player_one' && now - lastStateSent > 45) { // Throttle broadcasts to avoid flooding the realtime channel.
         lastStateSent = now;
         broadcastOnline('state', {
           leftY, rightY, ball: { x: ball.x, y: ball.y, vx: ball.vx, vy: ball.vy },
@@ -1608,7 +1610,10 @@
     }
   });
 
-  ui.pause.addEventListener('click', pauseGame);
+  ui.pause.addEventListener('click', () => {
+    if (onlineActive) return;
+    pauseGame();
+  });
   ui.restart.addEventListener('click', () => resetGame(false));
 
   ui.winScore.addEventListener('change', () => {
