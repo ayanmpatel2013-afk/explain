@@ -718,9 +718,16 @@
   }
   function applyOnlineState(st) {
     if (!onlineActive || onlineRole === 'player_one') return;
-    if (Number.isFinite(st.leftY)) leftY = st.leftY;
-    if (Number.isFinite(st.rightY)) rightY = st.rightY;
-    if (st.ball) ball = { ...ball, x: st.ball.x, y: st.ball.y, vx: st.ball.vx, vy: st.ball.vy };
+    // Keep the latest authoritative positions as targets; the render loop eases
+    // toward them each frame to reduce jitter on the receiving player's device.
+    if (!onlineRenderTarget) onlineRenderTarget = { leftY, rightY, x: ball.x, y: ball.y, vx: ball.vx, vy: ball.vy };
+    if (Number.isFinite(st.leftY)) onlineRenderTarget.leftY = st.leftY;
+    if (Number.isFinite(st.rightY)) onlineRenderTarget.rightY = st.rightY;
+    if (st.ball && Number.isFinite(st.ball.x) && Number.isFinite(st.ball.y)) {
+      onlineRenderTarget.x = st.ball.x; onlineRenderTarget.y = st.ball.y;
+      if (Number.isFinite(st.ball.vx)) onlineRenderTarget.vx = st.ball.vx;
+      if (Number.isFinite(st.ball.vy)) onlineRenderTarget.vy = st.ball.vy;
+    }
     if (Number.isFinite(st.leftPoints)) leftPoints = st.leftPoints;
     if (Number.isFinite(st.rightPoints)) rightPoints = st.rightPoints;
     if (Number.isFinite(st.target)) ui.winScore.value = String(st.target);
@@ -828,6 +835,8 @@
   const SUPABASE_KEY = 'sb_publishable_ZBaDYLWtuQLjK-1sWjUmvQ_2TYX3bGM';
   let supabase = null, onlineUserId = null, onlineMatchId = null, onlineRole = null;
   let onlineChannel = null, onlineActive = false, remoteRightY = H / 2 - 54;
+  // Smooth remote snapshots on Player 2 instead of visibly snapping every packet.
+  let onlineRenderTarget = null;
   let onlinePreparedForPlay = false;
   let lastStateSent = 0, onlinePollHandle = null, onlineVoteSent = false;
 
@@ -1611,9 +1620,17 @@
 
     if (onlineActive) {
       if (onlineRole === 'player_two') {
+        if (onlineRenderTarget) {
+          const ease = 0.38;
+          leftY += (onlineRenderTarget.leftY - leftY) * ease;
+          rightY += (onlineRenderTarget.rightY - rightY) * ease;
+          ball.x += (onlineRenderTarget.x - ball.x) * ease;
+          ball.y += (onlineRenderTarget.y - ball.y) * ease;
+          ball.vx = onlineRenderTarget.vx; ball.vy = onlineRenderTarget.vy;
+        }
         if (keys.has('ArrowUp')) remoteRightY = Math.max(0, remoteRightY - 7.4 * dt);
         if (keys.has('ArrowDown')) remoteRightY = Math.min(H - 108, remoteRightY + 7.4 * dt);
-        if (now - lastStateSent > 45) {
+        if (now - lastStateSent > 33) {
           lastStateSent = now;
           broadcastOnline('input', { rightY: remoteRightY });
         }
