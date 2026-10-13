@@ -304,6 +304,21 @@
     .help-grid { grid-template-columns: 1fr; }
     .help { padding: 10px; }
   }
+
+  .touch-controls { display:none; gap:10px; margin:10px 0 14px; grid-template-columns:1fr 1fr; }
+  .touch-player { border:1px solid #555; padding:10px; background:#111; min-width:0; }
+  .touch-player h3 { margin:0 0 8px; font-size:.85rem; }
+  .touch-row { display:flex; gap:8px; }
+  .touch-btn { flex:1; min-height:54px; font:900 1rem 'Courier New',monospace; color:#fff; background:#222; border:2px solid #777; border-radius:8px; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .touch-btn:active, .touch-btn.pressed { background:#555; transform:scale(.98); }
+  .touch-fire { margin-top:8px; width:100%; min-height:46px; border-color:#aaa; }
+  .game-wrap, canvas { touch-action:pan-y; }
+  @media (pointer:coarse), (max-width:760px) {
+    .touch-controls { display:grid; }
+    .touch-btn { min-height:58px; font-size:1.1rem; }
+    .scoreboard .number { font-size:clamp(1.4rem,6vw,2.4rem); }
+  }
+
 </style>
 </head>
 <body>
@@ -393,6 +408,19 @@
           <p id="overlayText">Choose a mode, then hit Start Game. First to 7 points wins!</p>
           <button id="overlayStart" class="primary" type="button">▶ Let's Play</button>
         </div>
+      </div>
+    </div>
+
+    <div id="touchControls" class="touch-controls" aria-label="Touchscreen controls">
+      <div class="touch-player" id="touchLeftPlayer">
+        <h3>PLAYER 1 · LEFT</h3>
+        <div class="touch-row"><button class="touch-btn" type="button" data-hold-key="w" aria-label="Player 1 move up">▲ UP</button><button class="touch-btn" type="button" data-hold-key="s" aria-label="Player 1 move down">▼ DOWN</button></div>
+        <button class="touch-btn touch-fire" type="button" data-fire="left">FIRE SHOTGUN</button>
+      </div>
+      <div class="touch-player" id="touchRightPlayer">
+        <h3>PLAYER 2 · RIGHT</h3>
+        <div class="touch-row"><button class="touch-btn" type="button" data-hold-key="ArrowUp" aria-label="Player 2 move up">▲ UP</button><button class="touch-btn" type="button" data-hold-key="ArrowDown" aria-label="Player 2 move down">▼ DOWN</button></div>
+        <button class="touch-btn touch-fire" type="button" data-fire="right">FIRE SHOTGUN</button>
       </div>
     </div>
 
@@ -619,6 +647,7 @@
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
     onlineActive = true;
     mode = 'online';
+    if (typeof refreshTouchControls === 'function') refreshTouchControls();
     ui.cpuMode.classList.remove('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = true; ui.winScore.disabled = true;
     ui.leftName.textContent = 'Player 1'; ui.rightName.textContent = 'Player 2';
@@ -1574,6 +1603,7 @@
       : '<kbd>↑</kbd> move up · <kbd>↓</kbd> move down · <kbd>←</kbd> fire shotgun';
 
     resetGame(false);
+    refreshTouchControls();
   }
 
   document.addEventListener('keydown', event => {
@@ -1602,6 +1632,41 @@
 
     if (key === 'Enter' && !running) startGame();
   });
+
+  // Touch controls mirror the existing keyboard controls. Pointer capture keeps
+  // movement held until the finger is lifted, even if it slides off the button.
+  const touchLeft = document.getElementById('touchLeftPlayer');
+  const touchRight = document.getElementById('touchRightPlayer');
+  function refreshTouchControls() {
+    touchLeft.style.display = (mode === 'online' && onlineRole === 'player_two') ? 'none' : '';
+    touchRight.style.display = (mode === 'cpu' || (mode === 'online' && onlineRole === 'player_one')) ? 'none' : '';
+    touchLeft.querySelector('h3').textContent = mode === 'online' ? 'YOU · LEFT' : 'PLAYER 1 · LEFT';
+    touchRight.querySelector('h3').textContent = mode === 'online' ? 'YOU · RIGHT' : 'PLAYER 2 · RIGHT';
+  }
+  document.querySelectorAll('[data-hold-key]').forEach(button => {
+    const key = button.dataset.holdKey;
+    const release = event => { keys.delete(key); button.classList.remove('pressed'); try { button.releasePointerCapture(event.pointerId); } catch (_) {} };
+    button.addEventListener('pointerdown', event => {
+      event.preventDefault(); keys.add(key); button.classList.add('pressed');
+      try { button.setPointerCapture(event.pointerId); } catch (_) {}
+    });
+    button.addEventListener('pointerup', release);
+    button.addEventListener('pointercancel', release);
+    button.addEventListener('lostpointercapture', () => { keys.delete(key); button.classList.remove('pressed'); });
+    button.addEventListener('contextmenu', event => event.preventDefault());
+  });
+  document.querySelectorAll('[data-fire]').forEach(button => button.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    const side = button.dataset.fire;
+    if (side === 'left' && mode === 'online' && onlineRole === 'player_two') return;
+    if (side === 'right' && mode === 'online' && onlineRole === 'player_one') return;
+    if (side === 'left' && mode === 'online' && onlineRole === 'player_one') fireShotgun('left');
+    else if (side === 'right' && mode === 'online' && onlineRole === 'player_two') broadcastOnline('input', { rightY: remoteRightY, action: 'shotgun' });
+    else fireShotgun(side);
+    button.classList.add('pressed');
+    setTimeout(() => button.classList.remove('pressed'), 130);
+  }));
+  refreshTouchControls();
 
   document.addEventListener('keyup', event => keys.delete(event.key));
 
