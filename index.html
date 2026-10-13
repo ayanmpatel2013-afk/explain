@@ -347,11 +347,12 @@
           <option value="easy">Easy Bot</option>
           <option value="medium" selected>Medium Bot</option>
           <option value="hard">Hard Bot</option>
-          <option value="impossible">💀 Impossible Bot</option>
+          <option value="impossible">💀 Final Boss</option>
         </select>
 
         <label for="winScore" class="sr-only">Points to win</label>
         <select id="winScore" aria-label="Points to win">
+          <option value="3">First to 3</option>
           <option value="5">First to 5</option>
           <option value="7" selected>First to 7</option>
           <option value="10">First to 10</option>
@@ -394,7 +395,7 @@
     </div>
 
     <p id="status" class="status" aria-live="polite">Press Start Game when you're ready.</p>
-    <p class="powerup-note">🎁 Power-ups are random: BIG PADDLE or SHOTGUN (50/50).</p>
+    <p class="powerup-note">🎁 Power-ups are random: BIG PADDLE or SHOTGUN (50/50). Final Boss: shotguns only.</p>
 
     <div class="help-grid">
       <div class="help">
@@ -549,17 +550,18 @@
   let gameOver = false;
   let rallyHits = 0;
 
-  // One power-up at a time: big paddle or one-use shotgun, chosen 50/50.
-  let powerUp = null;
+  // Power-ups are normally random; Impossible mode spawns three shotgun pickups every 15 seconds.
+  let powerUps = [];
   let leftPowerTimer = 0;
   let rightPowerTimer = 0;
-  let leftShotgun = false;
-  let rightShotgun = false;
+  let leftShotgun = 0;
+  let rightShotgun = 0;
   let leftStunTimer = 0;
   let rightStunTimer = 0;
   let bullets = [];
   let shotgunEffect = null;
   let nextPowerUpSpawn = 25 * 60;
+  let nextBossShot = 12 * 60;
   const POWER_DURATION = 600;
 
   function scheduleNextPowerUp() {
@@ -567,12 +569,13 @@
   }
 
   function clearRoundUpgrades() {
-    powerUp = null;
+    powerUps = [];
     leftPowerTimer = rightPowerTimer = 0;
-    leftShotgun = rightShotgun = false;
+    leftShotgun = rightShotgun = 0;
     leftStunTimer = rightStunTimer = 0;
     bullets = [];
     shotgunEffect = null;
+    nextBossShot = 12 * 60;
     scheduleNextPowerUp();
   }
 
@@ -697,7 +700,7 @@
     updateScore();
     clearRoundUpgrades();
 
-    const target = Number(ui.winScore.value);
+    const target = (mode === 'cpu' && ui.difficulty.value === 'impossible') ? 3 : Number(ui.winScore.value);
 
     if (leftPoints >= target || rightPoints >= target) {
       finishGame(
@@ -814,36 +817,48 @@
   }
 
   function spawnPowerUp() {
-    const side = mode === 'cpu'
-      ? 'left'
-      : (Math.random() < 0.5 ? 'left' : 'right');
-    const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
+    const impossibleMode = mode === 'cpu' && ui.difficulty.value === 'impossible';
+    const count = impossibleMode ? 3 : 1;
 
-    powerUp = {
-      x: paddleX + paddle.w / 2,
-      y: 65 + Math.random() * (H - 130),
-      side,
-      type: Math.random() < 0.5 ? 'grow' : 'shotgun',
-      size: 20,
-      life: 900
-    };
+    for (let i = 0; i < count; i++) {
+      const side = mode === 'cpu'
+        ? 'left'
+        : (Math.random() < 0.5 ? 'left' : 'right');
+      const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
+      // Keep three pickups separated vertically in Impossible mode.
+      const y = impossibleMode
+        ? 90 + i * ((H - 180) / 2)
+        : 65 + Math.random() * (H - 130);
 
-    ui.status.textContent = `A random ${powerUp.type === 'grow' ? 'big-paddle' : 'shotgun'} power-up appeared!`;
+      powerUps.push({
+        x: paddleX + paddle.w / 2,
+        y,
+        side,
+        type: impossibleMode ? 'shotgun' : (Math.random() < 0.5 ? 'grow' : 'shotgun'),
+        size: 20,
+        life: 900
+      });
+    }
+
+    ui.status.textContent = impossibleMode
+      ? 'FINAL BOSS MODE: 3 SHOTGUNS SPAWNED!'
+      : `A random ${powerUps[powerUps.length - 1].type === 'grow' ? 'big-paddle' : 'shotgun'} power-up appeared!`;
   }
 
-  function collectPowerUp(side) {
-    const type = powerUp.type;
+  function collectPowerUp(index, side) {
+    const pickup = powerUps[index];
+    if (!pickup) return;
+    const type = pickup.type;
 
     if (type === 'grow') {
       if (side === 'left') leftPowerTimer = POWER_DURATION;
       else rightPowerTimer = POWER_DURATION;
     } else {
-      if (side === 'left') leftShotgun = true;
-      else rightShotgun = true;
+      if (side === 'left') leftShotgun++;
+      else rightShotgun++;
     }
 
-    powerUp = null;
-    scheduleNextPowerUp();
+    powerUps.splice(index, 1);
 
     const playerName = side === 'left'
       ? 'Player 1'
@@ -851,29 +866,29 @@
 
     ui.status.textContent = type === 'grow'
       ? `${playerName} got the BIG PADDLE upgrade!`
-      : `${playerName} got the SHOTGUN! ${side === 'left' ? 'Press D' : 'Press ←'} to fire once.`;
+      : `${playerName} collected a SHOTGUN! Ammo: ${side === 'left' ? leftShotgun : rightShotgun}. Press ${side === 'left' ? 'D' : '←'} to fire.`;
   }
 
   function checkPowerUpCollection() {
-    if (!powerUp) return;
+    for (let i = powerUps.length - 1; i >= 0; i--) {
+      const pickup = powerUps[i];
+      const leftX = 34;
+      const rightX = W - 34 - paddle.w;
+      const hitLeft = pickup.side === 'left' &&
+        pickup.x >= leftX - 8 && pickup.x <= leftX + paddle.w + 8 &&
+        pickup.y >= leftY - 8 && pickup.y <= leftY + (leftPowerTimer > 0 ? 150 : 108) + 8;
+      const hitRight = pickup.side === 'right' &&
+        pickup.x >= rightX - 8 && pickup.x <= rightX + paddle.w + 8 &&
+        pickup.y >= rightY - 8 && pickup.y <= rightY + (rightPowerTimer > 0 ? 150 : 108) + 8;
+      if (hitLeft) collectPowerUp(i, 'left');
+      else if (hitRight) collectPowerUp(i, 'right');
+    }
+  }
 
-    const leftX = 34;
-    const rightX = W - 34 - paddle.w;
-
-    const hitLeft = powerUp.side === 'left' &&
-      powerUp.x >= leftX - 8 &&
-      powerUp.x <= leftX + paddle.w + 8 &&
-      powerUp.y >= leftY - 8 &&
-      powerUp.y <= leftY + (leftPowerTimer > 0 ? 150 : 108) + 8;
-
-    const hitRight = powerUp.side === 'right' &&
-      powerUp.x >= rightX - 8 &&
-      powerUp.x <= rightX + paddle.w + 8 &&
-      powerUp.y >= rightY - 8 &&
-      powerUp.y <= rightY + (rightPowerTimer > 0 ? 150 : 108) + 8;
-
-    if (hitLeft) collectPowerUp('left');
-    else if (hitRight) collectPowerUp('right');
+  function scheduleNextPowerUp() {
+    nextPowerUpSpawn = (mode === 'cpu' && ui.difficulty.value === 'impossible')
+      ? 15 * 60
+      : (20 + Math.random() * 10) * 60;
   }
 
   function fireShotgun(side) {
@@ -881,8 +896,8 @@
 
     if (!hasShotgun || !running || paused || gameOver) return;
 
-    if (side === 'left') leftShotgun = false;
-    else rightShotgun = false;
+    if (side === 'left') leftShotgun--;
+    else rightShotgun--;
 
     const paddleX = side === 'left'
       ? 34 + paddle.w
@@ -962,8 +977,9 @@
         b.y >= targetY &&
         b.y <= targetY + targetH
       ) {
-        if (targetSide === 'left') leftStunTimer = 72;
-        else rightStunTimer = 72;
+        // Each pellet adds another full 1.2 seconds of stun.
+        if (targetSide === 'left') leftStunTimer += 72;
+        else rightStunTimer += 72;
 
         return false;
       }
@@ -1015,18 +1031,33 @@
     ball.vx = hit.vx;
     ball.vy = hit.vy;
 
-    if (powerUp) {
-      powerUp.life -= dt;
+    const impossibleMode = mode === 'cpu' && ui.difficulty.value === 'impossible';
+    for (const pickup of powerUps) pickup.life -= dt;
+    powerUps = powerUps.filter(pickup => pickup.life > 0);
 
-      if (powerUp.life <= 0) {
-        powerUp = null;
-        scheduleNextPowerUp();
-      }
-    } else {
+    if (impossibleMode) {
+      // Final Boss gets three shotgun pickups every 15 seconds.
       nextPowerUpSpawn -= dt;
-
       if (nextPowerUpSpawn <= 0) {
         spawnPowerUp();
+        nextPowerUpSpawn = 15 * 60;
+      }
+
+      // Final Boss automatically fires one shotgun every 12 seconds.
+      nextBossShot -= dt;
+      if (nextBossShot <= 0) {
+        rightShotgun = true;
+        fireShotgun('right');
+        nextBossShot = 12 * 60;
+      }
+    } else {
+      nextBossShot = 12 * 60;
+      if (!powerUps.length) {
+      nextPowerUpSpawn -= dt;
+      if (nextPowerUpSpawn <= 0) {
+        spawnPowerUp();
+        scheduleNextPowerUp();
+      }
       }
     }
 
@@ -1127,8 +1158,8 @@
     ctx.fillRect(ball.x - 6, ball.y - 6, 12, 12);
     ctx.restore();
 
-    // Blue pixelated power-up with a white symbol.
-    if (powerUp) {
+    // Blue pixelated power-ups with white symbols.
+    for (const powerUp of powerUps) {
       const cx = Math.round(powerUp.x);
       const cy = Math.round(powerUp.y);
       const p = 4;
@@ -1193,7 +1224,7 @@
       ctx.restore();
     }
 
-    if (leftShotgun) {
+    if (leftShotgun > 0) {
       drawShotgun(
         'left',
         50,
@@ -1202,7 +1233,7 @@
       );
     }
 
-    if (rightShotgun) {
+    if (rightShotgun > 0) {
       drawShotgun(
         'right',
         W - 50,
@@ -1271,12 +1302,13 @@
 
   function setMode(nextMode) {
     mode = nextMode;
+    if (mode === 'cpu' && ui.difficulty.value === 'impossible') ui.winScore.value = '3';
 
     ui.cpuMode.classList.toggle('active', mode === 'cpu');
     ui.twoMode.classList.toggle('active', mode === 'two');
 
     ui.rightName.textContent = mode === 'cpu'
-      ? `CPU (${({ easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', impossible: 'IMPOSSIBLE BOT' })[ui.difficulty.value] || 'IMPOSSIBLE BOT'})`
+      ? `CPU (${({ easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', impossible: 'FINAL BOSS' })[ui.difficulty.value] || 'FINAL BOSS'})`
       : 'Player 2';
 
     ui.difficulty.disabled = mode !== 'cpu';
@@ -1348,17 +1380,21 @@
   });
 
   ui.difficulty.addEventListener('change', () => {
+    if (mode === 'cpu' && ui.difficulty.value === 'impossible') ui.winScore.value = '3';
+    else if (ui.winScore.value === '3') ui.winScore.value = '7';
+    powerUps = [];
+    scheduleNextPowerUp();
     const labels = {
       easy: 'Easy',
       medium: 'Medium',
       hard: 'Hard',
-      impossible: 'Impossible'
+      impossible: 'Final Boss'
     };
 
     if (mode === 'cpu') {
-      ui.rightName.textContent = `CPU (${({ easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', impossible: 'IMPOSSIBLE BOT' })[ui.difficulty.value] || 'IMPOSSIBLE BOT'})`;
+      ui.rightName.textContent = `CPU (${({ easy: 'EASY', medium: 'MEDIUM', hard: 'HARD', impossible: 'FINAL BOSS' })[ui.difficulty.value] || 'FINAL BOSS'})`;
       ui.status.textContent =
-        `${labels[ui.difficulty.value]} computer difficulty selected.`;
+        `${labels[ui.difficulty.value]} difficulty selected.`;
     }
   });
 
