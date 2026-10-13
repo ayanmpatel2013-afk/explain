@@ -582,8 +582,17 @@
       if (error) throw error;
       let match = Array.isArray(data) ? data[0] : data;
       if (typeof match === 'string') match = { id: match };
-      if (!match?.id && match?.match_id) match.id = match.match_id;
-      if (!match?.id) {
+      if (match && !match.id && match.match_id) match.id = match.match_id;
+      // Some RPC versions return only a match ID. Never treat that as a real
+      // match until we have fetched a row containing BOTH players and a live status.
+      if (match?.id && (!match.player_one || !match.player_two || !['voting','playing'].includes(match.status))) {
+        const { data: fullMatch, error: matchError } = await supabase.from('online_matches')
+          .select('id,player_one,player_two,status,target_score,created_at')
+          .eq('id', match.id).maybeSingle();
+        if (matchError) throw matchError;
+        match = fullMatch;
+      }
+      if (!match?.id || !match.player_one || !match.player_two || !['voting','playing'].includes(match.status)) {
         setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
         onlinePollHandle = setInterval(checkOnlineMatch, 1800);
         return;
@@ -601,7 +610,7 @@
       const { data, error } = await supabase.from('online_matches')
         .select('id,player_one,player_two,status,target_score')
         .or(`player_one.eq.${onlineUserId},player_two.eq.${onlineUserId}`)
-        .in('status', ['voting','playing']).order('created_at', { ascending: false }).limit(1);
+        .in('status', ['voting','playing']).not('player_two', 'is', null).order('created_at', { ascending: false }).limit(1);
       if (error) throw error;
       if (data?.length) {
         clearInterval(onlinePollHandle); onlinePollHandle = null;
@@ -610,6 +619,14 @@
     } catch (e) { setOnlineStatus('Still searching… (' + (e?.message || 'waiting for match') + ')'); }
   }
   async function attachOnlineMatch(match) {
+    // Defensive validation: a queue entry or incomplete RPC result is not a match.
+    if (!match?.id || !match.player_one || !match.player_two || !['voting','playing'].includes(match.status)) {
+      onlineMatchId = null;
+      onlineActive = false;
+      setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
+      if (!onlinePollHandle) onlinePollHandle = setInterval(checkOnlineMatch, 1800);
+      return;
+    }
     onlineVoteSent = false;
     document.querySelectorAll('.voteChoice').forEach(b => b.disabled = false);
     onlineMatchId = match.id;
