@@ -591,6 +591,8 @@
       try { await supabase.rpc('leave_matchmaking_queue'); } catch (_) {}
     }
     onlineActive = false;
+    ui.pause.disabled = false;
+    ui.pause.textContent = 'Ⅱ Pause';
     onlineRole = null;
     onlineMatchId = null;
     mode = 'cpu';
@@ -668,6 +670,9 @@
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
     onlineActive = true;
     mode = 'online';
+    ui.pause.disabled = true;
+    ui.pause.textContent = 'Online: No Pause';
+    paused = false;
     if (typeof refreshTouchControls === 'function') refreshTouchControls();
     ui.cpuMode.classList.remove('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = true; ui.winScore.disabled = true;
@@ -717,7 +722,7 @@
     if (Number.isFinite(st.rightShotgun)) rightShotgun = st.rightShotgun;
     if (Number.isFinite(st.leftStunTimer)) leftStunTimer = st.leftStunTimer;
     if (Number.isFinite(st.rightStunTimer)) rightStunTimer = st.rightStunTimer;
-    running = !!st.running; paused = !!st.paused; gameOver = !!st.gameOver;
+    running = !!st.running; paused = false; gameOver = !!st.gameOver; // Online matches can never be paused.
     updateScore();
     if (st.overlay) showOverlay(st.overlay.title, st.overlay.text, st.overlay.buttonText);
     else hideOverlay();
@@ -931,7 +936,8 @@
     paused = false;
     gameOver = false;
 
-    ui.pause.textContent = 'Ⅱ Pause';
+    ui.pause.textContent = onlineActive ? 'Online: No Pause' : 'Ⅱ Pause';
+    ui.pause.disabled = !!onlineActive;
     hideOverlay();
 
     ui.status.textContent = mode === 'cpu'
@@ -945,6 +951,8 @@
   }
 
   function pauseGame() {
+    // Pausing is local-only; freezing an online match would affect the opponent.
+    if (onlineActive || mode === 'online') return;
     if (!running || gameOver) return;
 
     paused = !paused;
@@ -1596,7 +1604,7 @@
         lastStateSent = now;
         broadcastOnline('state', {
           leftY, rightY, ball: { x: ball.x, y: ball.y, vx: ball.vx, vy: ball.vy },
-          leftPoints, rightPoints, target: Number(ui.winScore.value), running, paused, gameOver,
+          leftPoints, rightPoints, target: Number(ui.winScore.value), running, paused: false, gameOver,
           powerUps, bullets, leftPowerTimer, rightPowerTimer, leftShotgun, rightShotgun,
           leftStunTimer, rightStunTimer,
           overlay: ui.overlay.classList.contains('show') ? {
