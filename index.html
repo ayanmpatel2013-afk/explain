@@ -593,6 +593,7 @@
     onlineActive = false;
     ui.pause.disabled = false;
     ui.pause.textContent = 'Ⅱ Pause';
+    ui.restart.disabled = false;
     onlineRole = null;
     onlineMatchId = null;
     mode = 'cpu';
@@ -670,8 +671,11 @@
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
     onlineActive = true;
     mode = 'online';
+    // Lock pause AND restart for the entire online session. Resetting only one
+    // browser would desynchronise the two players, even if pause itself is blocked.
     ui.pause.disabled = true;
     ui.pause.textContent = 'Online: No Pause';
+    ui.restart.disabled = true;
     paused = false;
     if (typeof refreshTouchControls === 'function') refreshTouchControls();
     ui.cpuMode.classList.remove('active'); ui.twoMode.classList.remove('active');
@@ -900,7 +904,9 @@
     gameOver = false;
     clearRoundUpgrades();
 
-    ui.pause.textContent = 'Ⅱ Pause';
+    ui.pause.disabled = !!(onlineActive || mode === 'online');
+    ui.pause.textContent = (onlineActive || mode === 'online') ? 'Online: No Pause' : 'Ⅱ Pause';
+    ui.restart.disabled = !!(onlineActive || mode === 'online');
 
     resetBall();
     updateScore();
@@ -936,8 +942,9 @@
     paused = false;
     gameOver = false;
 
-    ui.pause.textContent = onlineActive ? 'Online: No Pause' : 'Ⅱ Pause';
-    ui.pause.disabled = !!onlineActive;
+    ui.pause.textContent = (onlineActive || mode === 'online') ? 'Online: No Pause' : 'Ⅱ Pause';
+    ui.pause.disabled = !!(onlineActive || mode === 'online');
+    ui.restart.disabled = !!(onlineActive || mode === 'online');
     hideOverlay();
 
     ui.status.textContent = mode === 'cpu'
@@ -1180,12 +1187,6 @@
       if (hitLeft) collectPowerUp(i, 'left');
       else if (hitRight) collectPowerUp(i, 'right');
     }
-  }
-
-  function scheduleNextPowerUp() {
-    nextPowerUpSpawn = (mode === 'cpu' && ui.difficulty.value === 'impossible')
-      ? 15 * 60
-      : (20 + Math.random() * 10) * 60;
   }
 
   function fireShotgun(side) {
@@ -1607,7 +1608,7 @@
           leftPoints, rightPoints, target: Number(ui.winScore.value), running, paused: false, gameOver,
           powerUps, bullets, leftPowerTimer, rightPowerTimer, leftShotgun, rightShotgun,
           leftStunTimer, rightStunTimer,
-          overlay: ui.overlay.classList.contains('show') ? {
+          overlay: !ui.overlay.classList.contains('hidden') ? {
             title: ui.overlayTitle.textContent, text: ui.overlayText.textContent,
             buttonText: ui.overlayStart.textContent
           } : null
@@ -1721,8 +1722,20 @@
     }
   });
 
-  ui.pause.addEventListener('click', pauseGame);
-  ui.restart.addEventListener('click', () => resetGame(false));
+  ui.pause.addEventListener('click', () => {
+    if (onlineActive || mode === 'online') {
+      setOnlineStatus('Online matches cannot be paused.');
+      return;
+    }
+    pauseGame();
+  });
+  ui.restart.addEventListener('click', () => {
+    if (onlineActive || mode === 'online') {
+      setOnlineStatus('Restart is disabled during online matches. Finish the match or leave it first.');
+      return;
+    }
+    resetGame(false);
+  });
 
   ui.winScore.addEventListener('change', () => {
     if (mode === 'cpu' && ui.difficulty.value === 'impossible') {
