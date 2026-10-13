@@ -596,6 +596,7 @@
     ui.restart.disabled = false;
     onlineRole = null;
     onlineMatchId = null;
+    onlineMatchPrepared = false;
     mode = 'cpu';
     ui.cpuMode.classList.add('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = false; ui.winScore.disabled = false;
@@ -666,6 +667,7 @@
       return;
     }
     onlineVoteSent = false;
+    onlineMatchPrepared = match.status === 'playing';
     document.querySelectorAll('.voteChoice').forEach(b => b.disabled = false);
     onlineMatchId = match.id;
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
@@ -694,6 +696,13 @@
         if (onlineRole === 'player_one' && payload && Number.isFinite(payload.rightY)) remoteRightY = payload.rightY;
         if (onlineRole === 'player_one' && payload?.action === 'shotgun') fireShotgun('right');
       })
+      .on('broadcast', { event: 'start' }, () => {
+        // Player 1 owns the authoritative simulation. A start click from Player 2
+        // must reach Player 1 instead of leaving Player 2 with a frozen paddle.
+        if (onlineActive && onlineRole === 'player_one' && !running && onlineVote.style.display === 'none') {
+          startGame(true);
+        }
+      })
       .subscribe(status => {
         if (status === 'SUBSCRIBED' && onlineActive && onlineMatchId === match.id) {
           setOnlineStatus(match.status === 'playing'
@@ -705,7 +714,7 @@
       ui.winScore.value = String(match.target_score || 7);
       onlineVote.style.display = 'none';
       resetGame(false);
-      setOnlineStatus('Match ready. Press Start Game when both players are ready.');
+      setOnlineStatus('Voting complete! Either player can press Start Game.');
     }
     if (onlinePollHandle) clearInterval(onlinePollHandle);
     onlinePollHandle = setInterval(refreshOnlineMatch, 1500);
@@ -747,9 +756,14 @@
       if (data.status === 'voting') {
         onlineVote.style.display = 'block';
         setOnlineStatus('Opponent connected. Both players choose a score to start.');
-      } else if (data.status === 'playing' && !onlineVoteSent) {
+      } else if (data.status === 'playing') {
         onlineVote.style.display = 'none';
         ui.winScore.value = String(data.target_score || 7);
+        if (!onlineMatchPrepared) {
+          onlineMatchPrepared = true;
+          resetGame(false);
+          setOnlineStatus('Voting complete! Either player can press Start Game.');
+        }
       }
     } catch (e) { setOnlineStatus('Connection hiccup; reconnecting…'); }
   }
@@ -767,8 +781,9 @@
       if (data?.status === 'playing') {
         ui.winScore.value = String(data.target_score || 7);
         onlineVote.style.display = 'none';
+        onlineMatchPrepared = true;
         resetGame(false);
-        setOnlineStatus('Voting finished! First to ' + ui.winScore.value + '. Press Start Game.');
+        setOnlineStatus('Voting finished! First to ' + ui.winScore.value + '. Either player can press Start Game.');
       } else voteStatus.textContent = 'Vote received! Waiting for your opponent…';
     } catch (e) {
       voteStatus.textContent = 'Vote error: ' + (e?.message || String(e));
@@ -819,6 +834,7 @@
   let supabase = null, onlineUserId = null, onlineMatchId = null, onlineRole = null;
   let onlineChannel = null, onlineActive = false, remoteRightY = H / 2 - 54;
   let lastStateSent = 0, onlinePollHandle = null, onlineVoteSent = false;
+  let onlineMatchPrepared = false;
 
   let leftY = H / 2 - paddle.h / 2;
   let rightY = H / 2 - paddle.h / 2;
@@ -924,9 +940,16 @@
     }
   }
 
-  function startGame() {
+  function startGame(fromOnlineSignal = false) {
     if (onlineActive && onlineVote.style.display !== 'none') {
       setOnlineStatus('Finish voting before starting the online match.');
+      return;
+    }
+    // Player 2 cannot run the simulation independently. Send the start request
+    // to Player 1, who owns ball movement and broadcasts the authoritative state.
+    if (onlineActive && onlineRole === 'player_two' && !fromOnlineSignal) {
+      broadcastOnline('start', {});
+      setOnlineStatus('Start request sent. Waiting for Player 1 to begin the rally…');
       return;
     }
     // Create/resume audio during the Start button gesture for browser permission.
