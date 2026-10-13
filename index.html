@@ -614,9 +614,17 @@
       let match = Array.isArray(data) ? data[0] : data;
       if (typeof match === 'string') match = { id: match };
       if (!match?.id && match?.match_id) match.id = match.match_id;
-      if (!match?.id) {
+      // Never treat an RPC return value/ID alone as proof that an opponent exists.
+      if (match?.id && (!match.player_one || !match.player_two || !['voting','playing'].includes(match.status))) {
+        const { data: row, error: rowError } = await supabase.from('online_matches')
+          .select('id,player_one,player_two,status,target_score')
+          .eq('id', match.id).maybeSingle();
+        if (rowError) throw rowError;
+        match = row;
+      }
+      if (!match?.id || !match.player_one || !match.player_two || !['voting','playing'].includes(match.status)) {
         setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
-        onlinePollHandle = setInterval(checkOnlineMatch, 1800);
+        if (!onlinePollHandle) onlinePollHandle = setInterval(checkOnlineMatch, 1800);
         return;
       }
       await attachOnlineMatch(match);
@@ -632,6 +640,7 @@
       const { data, error } = await supabase.from('online_matches')
         .select('id,player_one,player_two,status,target_score')
         .or(`player_one.eq.${onlineUserId},player_two.eq.${onlineUserId}`)
+        .not('player_one', 'is', null).not('player_two', 'is', null)
         .in('status', ['voting','playing']).order('created_at', { ascending: false }).limit(1);
       if (error) throw error;
       if (data?.length) {
@@ -641,6 +650,18 @@
     } catch (e) { setOnlineStatus('Still searching… (' + (e?.message || 'waiting for match') + ')'); }
   }
   async function attachOnlineMatch(match) {
+    // Guard every entry path, including stale rows and incomplete RPC responses.
+    if (!match?.id || !match.player_one || !match.player_two ||
+        !['voting','playing'].includes(match.status) ||
+        ![match.player_one, match.player_two].includes(onlineUserId)) {
+      onlineMatchId = null;
+      onlineActive = false;
+      onlineChannel = null;
+      mode = 'cpu';
+      setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
+      if (!onlinePollHandle) onlinePollHandle = setInterval(checkOnlineMatch, 1800);
+      return;
+    }
     onlineVoteSent = false;
     document.querySelectorAll('.voteChoice').forEach(b => b.disabled = false);
     onlineMatchId = match.id;
@@ -664,7 +685,13 @@
         if (onlineRole === 'player_one' && payload && Number.isFinite(payload.rightY)) remoteRightY = payload.rightY;
         if (onlineRole === 'player_one' && payload?.action === 'shotgun') fireShotgun('right');
       })
-      .subscribe(status => { if (status === 'SUBSCRIBED') setOnlineStatus('Connected! ' + (onlineRole === 'player_one' ? 'You are Player 1.' : 'You are Player 2.') + ' Vote, then play!'); });
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED' && onlineActive && onlineMatchId === match.id) {
+          setOnlineStatus(match.status === 'playing'
+            ? 'Match ready. Waiting for both players to start.'
+            : 'Opponent found! Vote for the match length.');
+        }
+      });
     if (match.status === 'playing') {
       ui.winScore.value = String(match.target_score || 7);
       onlineVote.style.display = 'none';
