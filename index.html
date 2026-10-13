@@ -591,12 +591,12 @@
       try { await supabase.rpc('leave_matchmaking_queue'); } catch (_) {}
     }
     onlineActive = false;
+    onlinePreparedForPlay = false;
     ui.pause.disabled = false;
     ui.pause.textContent = 'Ⅱ Pause';
     ui.restart.disabled = false;
     onlineRole = null;
     onlineMatchId = null;
-    onlineMatchPrepared = false;
     mode = 'cpu';
     ui.cpuMode.classList.add('active'); ui.twoMode.classList.remove('active');
     ui.difficulty.disabled = false; ui.winScore.disabled = false;
@@ -604,13 +604,14 @@
     ui.rightName.textContent = 'CPU (' + (({easy:'EASY',medium:'MEDIUM',hard:'HARD',impossible:'FINAL BOSS'})[ui.difficulty.value] || 'MEDIUM') + ')';
     ui.rightControls.innerHTML = '<kbd>↑</kbd> / <kbd>↓</kbd> controls are handled by the computer';
     onlineVote.style.display = 'none';
+    voteStatus.textContent = '';
     cancelOnlineBtn.disabled = true;
     playOnlineBtn.disabled = false;
   }
   async function startOnlineSearch() {
     playOnlineBtn.disabled = true;
     cancelOnlineBtn.disabled = false;
-    setOnlineStatus('Connecting securely and searching for another player…');
+    setOnlineStatus('Searching for players… Connecting securely. Voting starts when an opponent is found.');
     try {
       await ensureOnlineClient();
       const { data, error } = await supabase.rpc('find_or_create_match');
@@ -626,8 +627,16 @@
         if (rowError) throw rowError;
         match = row;
       }
-      if (!match?.id || !match.player_one || !match.player_two || !['voting','playing'].includes(match.status)) {
-        setOnlineStatus('You are in the matchmaking queue. Waiting for another player…');
+      if (match?.status === 'playing') {
+        // A previous browser session can leave a stale playing row. Never attach to
+        // it as if an opponent were online: it skips voting and can leave a frozen paddle.
+        setOnlineStatus('An old match session was found. Apply the included Supabase matchmaking SQL fix, then click Play Online again.');
+        playOnlineBtn.disabled = false;
+        cancelOnlineBtn.disabled = true;
+        return;
+      }
+      if (!match?.id || !match.player_one || !match.player_two || match.status !== 'voting') {
+        setOnlineStatus('Searching for players… You will vote once another player is found.');
         if (!onlinePollHandle) onlinePollHandle = setInterval(checkOnlineMatch, 1800);
         return;
       }
@@ -645,7 +654,7 @@
         .select('id,player_one,player_two,status,target_score')
         .or(`player_one.eq.${onlineUserId},player_two.eq.${onlineUserId}`)
         .not('player_one', 'is', null).not('player_two', 'is', null)
-        .in('status', ['voting','playing']).order('created_at', { ascending: false }).limit(1);
+        .eq('status', 'voting').order('created_at', { ascending: false }).limit(1);
       if (error) throw error;
       if (data?.length) {
         clearInterval(onlinePollHandle); onlinePollHandle = null;
@@ -656,7 +665,7 @@
   async function attachOnlineMatch(match) {
     // Guard every entry path, including stale rows and incomplete RPC responses.
     if (!match?.id || !match.player_one || !match.player_two ||
-        !['voting','playing'].includes(match.status) ||
+        match.status !== 'voting' ||
         ![match.player_one, match.player_two].includes(onlineUserId)) {
       onlineMatchId = null;
       onlineActive = false;
@@ -667,7 +676,7 @@
       return;
     }
     onlineVoteSent = false;
-    onlineMatchPrepared = match.status === 'playing';
+    onlinePreparedForPlay = false;
     document.querySelectorAll('.voteChoice').forEach(b => b.disabled = false);
     onlineMatchId = match.id;
     onlineRole = match.player_one === onlineUserId ? 'player_one' : 'player_two';
@@ -686,8 +695,8 @@
     ui.rightControls.innerHTML = onlineRole === 'player_one'
       ? '<kbd>W</kbd>/<kbd>S</kbd> move · waiting for Player 2 on right'
       : '<kbd>↑</kbd>/<kbd>↓</kbd> move · <kbd>←</kbd> fire shotgun';
-    onlineVote.style.display = match.status === 'voting' ? 'block' : 'none';
-    setOnlineStatus(match.status === 'playing' ? 'Match connected! You are ' + (onlineRole === 'player_one' ? 'Player 1 (left).' : 'Player 2 (right).') : 'Opponent found! Vote for the match length.');
+    onlineVote.style.display = 'block';
+    setOnlineStatus('Opponent found! Vote for the match length.');
     onlineChannel = supabase.channel('illegal-pong-' + onlineMatchId, { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'state' }, ({ payload }) => {
         if (onlineRole !== 'player_one' && payload) applyOnlineState(payload);
@@ -697,25 +706,13 @@
         if (onlineRole === 'player_one' && payload?.action === 'shotgun') fireShotgun('right');
       })
       .on('broadcast', { event: 'start' }, () => {
-        // Player 1 owns the authoritative simulation. A start click from Player 2
-        // must reach Player 1 instead of leaving Player 2 with a frozen paddle.
-        if (onlineActive && onlineRole === 'player_one' && !running && onlineVote.style.display === 'none') {
-          startGame(true);
-        }
+        if (onlineActive && onlineMatchId === match.id && onlinePreparedForPlay && !running) startGame(true);
       })
       .subscribe(status => {
         if (status === 'SUBSCRIBED' && onlineActive && onlineMatchId === match.id) {
-          setOnlineStatus(match.status === 'playing'
-            ? 'Match ready. Waiting for both players to start.'
-            : 'Opponent found! Vote for the match length.');
+          setOnlineStatus('Opponent found! Vote for the match length.');
         }
       });
-    if (match.status === 'playing') {
-      ui.winScore.value = String(match.target_score || 7);
-      onlineVote.style.display = 'none';
-      resetGame(false);
-      setOnlineStatus('Voting complete! Either player can press Start Game.');
-    }
     if (onlinePollHandle) clearInterval(onlinePollHandle);
     onlinePollHandle = setInterval(refreshOnlineMatch, 1500);
   }
@@ -755,15 +752,13 @@
       if (!data) return;
       if (data.status === 'voting') {
         onlineVote.style.display = 'block';
-        setOnlineStatus('Opponent connected. Both players choose a score to start.');
-      } else if (data.status === 'playing') {
+        setOnlineStatus('Opponent connected! Vote for the match length.');
+      } else if (data.status === 'playing' && !onlinePreparedForPlay) {
+        onlinePreparedForPlay = true;
         onlineVote.style.display = 'none';
         ui.winScore.value = String(data.target_score || 7);
-        if (!onlineMatchPrepared) {
-          onlineMatchPrepared = true;
-          resetGame(false);
-          setOnlineStatus('Voting complete! Either player can press Start Game.');
-        }
+        resetGame(false);
+        setOnlineStatus('Voting complete! Both players can press Start Game.');
       }
     } catch (e) { setOnlineStatus('Connection hiccup; reconnecting…'); }
   }
@@ -781,9 +776,9 @@
       if (data?.status === 'playing') {
         ui.winScore.value = String(data.target_score || 7);
         onlineVote.style.display = 'none';
-        onlineMatchPrepared = true;
+        onlinePreparedForPlay = true;
         resetGame(false);
-        setOnlineStatus('Voting finished! First to ' + ui.winScore.value + '. Either player can press Start Game.');
+        setOnlineStatus('Voting complete! Both players can press Start Game.');
       } else voteStatus.textContent = 'Vote received! Waiting for your opponent…';
     } catch (e) {
       voteStatus.textContent = 'Vote error: ' + (e?.message || String(e));
@@ -833,8 +828,8 @@
   const SUPABASE_KEY = 'sb_publishable_ZBaDYLWtuQLjK-1sWjUmvQ_2TYX3bGM';
   let supabase = null, onlineUserId = null, onlineMatchId = null, onlineRole = null;
   let onlineChannel = null, onlineActive = false, remoteRightY = H / 2 - 54;
+  let onlinePreparedForPlay = false;
   let lastStateSent = 0, onlinePollHandle = null, onlineVoteSent = false;
-  let onlineMatchPrepared = false;
 
   let leftY = H / 2 - paddle.h / 2;
   let rightY = H / 2 - paddle.h / 2;
@@ -936,22 +931,20 @@
         `Mode: ${mode === 'cpu' ? 'Player vs Computer' : '2 Players'}. First to ${ui.winScore.value} points wins!`
       );
 
-      ui.status.textContent = 'Press Start Game when you’re ready.';
+      ui.status.textContent = onlineActive ? 'Voting complete. Press Start Game to begin the online match.' : 'Press Start Game when you’re ready.';
     }
   }
 
-  function startGame(fromOnlineSignal = false) {
+  function startGame(fromRemote = false) {
     if (onlineActive && onlineVote.style.display !== 'none') {
       setOnlineStatus('Finish voting before starting the online match.');
       return;
     }
-    // Player 2 cannot run the simulation independently. Send the start request
-    // to Player 1, who owns ball movement and broadcasts the authoritative state.
-    if (onlineActive && onlineRole === 'player_two' && !fromOnlineSignal) {
-      broadcastOnline('start', {});
-      setOnlineStatus('Start request sent. Waiting for Player 1 to begin the rally…');
+    if (onlineActive && !onlinePreparedForPlay) {
+      setOnlineStatus('Wait for both players to finish voting first.');
       return;
     }
+    if (onlineActive && !fromRemote) broadcastOnline('start', { role: onlineRole });
     // Create/resume audio during the Start button gesture for browser permission.
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
