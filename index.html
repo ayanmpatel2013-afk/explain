@@ -1398,7 +1398,7 @@
           const playerTop = leftY;
           const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
           if (bossLaserAttack.lanes.some(y => y >= playerTop - 10 && y <= playerBottom + 10)) {
-            leftStunTimer += 48;
+            leftStunTimer += 4.7 * 60; // 4.7 seconds at 60 FPS
             bossLaserAttack.hit = true;
           }
         }
