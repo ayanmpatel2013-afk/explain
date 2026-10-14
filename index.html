@@ -1304,9 +1304,15 @@
         b.y >= targetY &&
         b.y <= targetY + targetH
       ) {
-        // Each pellet stacks another full 1.2 seconds onto the existing stun.
-        if (targetSide === 'left') leftStunTimer += 72;
-        else rightStunTimer += 72;
+        // Base shotgun stun stays 1.2 seconds for both sides.
+        // Only the player (left paddle) gets the extra 0.7 seconds in Final Boss mode.
+        const finalBossArea = mode === 'cpu' && ui.difficulty.value === 'impossible';
+        if (targetSide === 'left') {
+          leftStunTimer += 72 + (finalBossArea ? 42 : 0);
+        } else {
+          // The boss keeps its original shotgun stun duration.
+          rightStunTimer += 72;
+        }
 
         return false;
       }
