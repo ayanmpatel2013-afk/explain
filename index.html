@@ -1397,8 +1397,9 @@
           bossLaserAttack.fired = true;
           const playerTop = leftY;
           const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
-          if (bossLaserAttack.lanes.some(y => y >= playerTop - 10 && y <= playerBottom + 10)) {
-            leftStunTimer += 4.7 * 60; // 4.7 seconds at 60 FPS
+          if (bossLaserAttack.lanes.some(y => y + 10 >= playerTop && y - 10 <= playerBottom)) {
+            // Set the stun to exactly 4.7 seconds (timers are measured in frames at 60 FPS).
+            leftStunTimer = 4.7 * 60;
             bossLaserAttack.hit = true;
           }
         }
