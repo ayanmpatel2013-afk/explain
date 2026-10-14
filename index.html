@@ -829,6 +829,34 @@
     }
   }
 
+  // Chunky 8-bit laser zap, played when the Final Boss fires its three beams.
+  function playBossLaserSound() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!hitSoundContext) hitSoundContext = new AudioCtx();
+      if (hitSoundContext.state === 'suspended') hitSoundContext.resume();
+      const now = hitSoundContext.currentTime;
+      const osc = hitSoundContext.createOscillator();
+      const gain = hitSoundContext.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.setValueAtTime(620, now + 0.035);
+      osc.frequency.setValueAtTime(360, now + 0.085);
+      osc.frequency.setValueAtTime(180, now + 0.14);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.setValueAtTime(0.16, now + 0.008);
+      gain.gain.setValueAtTime(0.10, now + 0.075);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.19);
+      osc.connect(gain);
+      gain.connect(hitSoundContext.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } catch (error) {
+      // Keep the game running if browser audio is unavailable.
+    }
+  }
+
   let mode = 'cpu';
   // Online sessions use Supabase anonymous auth + Realtime Broadcast.
   const SUPABASE_URL = 'https://vbemoaunjghqwihzlllb.supabase.co';
@@ -1401,6 +1429,7 @@
         // Warning lasts 54 frames (~0.9s); the solid laser volley lasts 15 frames.
         if (bossLaserAttack.age >= 54 && !bossLaserAttack.fired) {
           bossLaserAttack.fired = true;
+          playBossLaserSound();
           const playerTop = leftY;
           const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
           if (bossLaserAttack.lanes.some(y => y + 10 >= playerTop && y - 10 <= playerBottom)) {
@@ -1511,26 +1540,36 @@
       '#bdbdbd'
     );
 
-    // Final Boss laser warning and attack. Hollow red rectangles show the exact lanes first.
+    // Final Boss laser warning and attack, drawn as chunky pixel-art blocks.
     if (mode === 'cpu' && ui.difficulty.value === 'impossible' && bossLaserAttack) {
       const warning = !bossLaserAttack.fired;
+      const blockW = 24;
       ctx.save();
-      ctx.lineWidth = warning ? 3 : 2;
+      ctx.imageSmoothingEnabled = false;
       for (const y of bossLaserAttack.lanes) {
         if (warning) {
-          ctx.strokeStyle = 'rgba(255,35,45,0.95)';
-          ctx.fillStyle = 'rgba(255,0,20,0.07)';
-          ctx.setLineDash([12, 7]);
-          ctx.fillRect(0, y - 10, W, 20);
-          ctx.strokeRect(2, y - 10, W - 4, 20);
+          // Hollow, separated red pixel blocks telegraph the exact lane before firing.
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = 'rgba(255,35,45,0.98)';
+          ctx.fillStyle = 'rgba(255,0,20,0.06)';
+          for (let x = 2; x < W - 2; x += blockW + 8) {
+            const bw = Math.min(blockW, W - 2 - x);
+            ctx.fillRect(x, Math.round(y - 10), bw, 20);
+            ctx.strokeRect(x, Math.round(y - 10), bw, 20);
+          }
         } else {
-          ctx.setLineDash([]);
+          // Solid laser is built from individual red pixels with a broken white-hot core.
           ctx.shadowColor = '#ff001e';
-          ctx.shadowBlur = 14;
-          ctx.fillStyle = '#ff1830';
-          ctx.fillRect(0, y - 7, W, 14);
-          ctx.fillStyle = '#fff0f0';
-          ctx.fillRect(0, y - 2, W, 4);
+          ctx.shadowBlur = 0;
+          for (let x = 0, i = 0; x < W; x += blockW, i++) {
+            const bw = Math.min(blockW - 2, W - x);
+            ctx.fillStyle = i % 2 === 0 ? '#ff1830' : '#e90020';
+            ctx.fillRect(x, Math.round(y - 8), bw, 16);
+            if (i % 3 !== 1) {
+              ctx.fillStyle = '#fff0f0';
+              ctx.fillRect(x + 3, Math.round(y - 2), Math.max(2, bw - 8), 4);
+            }
+          }
         }
       }
       ctx.restore();
