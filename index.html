@@ -851,7 +851,7 @@
   let gameOver = false;
   let rallyHits = 0;
 
-  // Power-ups are normally random; Impossible mode spawns three shotgun pickups every 15 seconds.
+  // Power-ups are normally random; Final Boss mode spawns only two shotgun pickups every 15 seconds, with a two-shotgun ammo cap.
   let powerUps = [];
   let leftPowerTimer = 0;
   let rightPowerTimer = 0;
@@ -865,6 +865,8 @@
   // In local two-player mode, alternate pickup sides so both players get fair chances.
   let nextLocalPowerUpSide = 'left';
   let nextBossShot = 12 * 60;
+  let nextBossLaser = 8 * 60;
+  let bossLaserAttack = null;
   const POWER_DURATION = 600;
 
   function scheduleNextPowerUp() {
@@ -882,6 +884,8 @@
     bullets = [];
     shotgunEffect = null;
     nextBossShot = 12 * 60;
+    nextBossLaser = 8 * 60;
+    bossLaserAttack = null;
     scheduleNextPowerUp();
   }
 
@@ -1141,7 +1145,7 @@
 
   function spawnPowerUp() {
     const impossibleMode = mode === 'cpu' && ui.difficulty.value === 'impossible';
-    const count = impossibleMode ? 3 : 1;
+    const count = impossibleMode ? 2 : 1;
 
     for (let i = 0; i < count; i++) {
       let side;
@@ -1154,9 +1158,9 @@
         side = Math.random() < 0.5 ? 'left' : 'right';
       }
       const paddleX = side === 'left' ? 34 : W - 34 - paddle.w;
-      // Keep three pickups separated vertically in Impossible mode.
+      // Keep the two Final Boss pickups separated vertically.
       const y = impossibleMode
-        ? 90 + i * ((H - 180) / 2)
+        ? 145 + i * (H - 290)
         : 65 + Math.random() * (H - 130);
 
       powerUps.push({
@@ -1170,7 +1174,7 @@
     }
 
     ui.status.textContent = impossibleMode
-      ? 'FINAL BOSS MODE: 3 SHOTGUNS SPAWNED!'
+      ? 'FINAL BOSS MODE: 2 SHOTGUNS SPAWNED (MAX AMMO: 2)!'
       : `A random ${powerUps[powerUps.length - 1].type === 'grow' ? 'big-paddle' : 'shotgun'} power-up appeared!`;
   }
 
@@ -1183,8 +1187,8 @@
       if (side === 'left') leftPowerTimer = POWER_DURATION;
       else rightPowerTimer = POWER_DURATION;
     } else {
-      if (side === 'left') leftShotgun++;
-      else rightShotgun++;
+      if (side === 'left') leftShotgun = Math.min(2, leftShotgun + 1);
+      else rightShotgun = Math.min(2, rightShotgun + 1);
     }
 
     powerUps.splice(index, 1);
@@ -1359,22 +1363,51 @@
     powerUps = powerUps.filter(pickup => pickup.life > 0);
 
     if (impossibleMode) {
-      // Final Boss gets three shotgun pickups every 15 seconds.
+      // Final Boss gets only two shotgun pickups every 15 seconds; each player can hold at most two shotguns.
       nextPowerUpSpawn -= dt;
       if (nextPowerUpSpawn <= 0) {
         spawnPowerUp();
         nextPowerUpSpawn = 15 * 60;
       }
 
-      // Final Boss automatically fires one shotgun every 12 seconds.
+      // Final Boss automatically fires exactly one shotgun every 12 seconds.
       nextBossShot -= dt;
       if (nextBossShot <= 0) {
-        rightShotgun += 1;
+        rightShotgun = Math.min(2, rightShotgun + 1);
         fireShotgun('right');
         nextBossShot = 12 * 60;
       }
+
+      // Three-laser attack: telegraph the exact lanes as hollow red beams, then fire.
+      nextBossLaser -= dt;
+      if (nextBossLaser <= 0 && !bossLaserAttack) {
+        const targetY = leftY + (leftPowerTimer > 0 ? 75 : 54);
+        bossLaserAttack = {
+          age: 0,
+          lanes: [clamp(targetY - 105, 18, H - 18), clamp(targetY, 18, H - 18), clamp(targetY + 105, 18, H - 18)],
+          fired: false,
+          hit: false
+        };
+        nextBossLaser = 8 * 60;
+      }
+      if (bossLaserAttack) {
+        bossLaserAttack.age += dt;
+        // Warning lasts 54 frames (~0.9s); the solid laser volley lasts 15 frames.
+        if (bossLaserAttack.age >= 54 && !bossLaserAttack.fired) {
+          bossLaserAttack.fired = true;
+          const playerTop = leftY;
+          const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
+          if (bossLaserAttack.lanes.some(y => y >= playerTop - 10 && y <= playerBottom + 10)) {
+            leftStunTimer += 48;
+            bossLaserAttack.hit = true;
+          }
+        }
+        if (bossLaserAttack.age >= 69) bossLaserAttack = null;
+      }
     } else {
       nextBossShot = 12 * 60;
+      nextBossLaser = 8 * 60;
+      bossLaserAttack = null;
       nextPowerUpSpawn -= dt;
       if (nextPowerUpSpawn <= 0) {
         spawnPowerUp();
@@ -1470,6 +1503,31 @@
       '#bdbdbd',
       '#bdbdbd'
     );
+
+    // Final Boss laser warning and attack. Hollow red rectangles show the exact lanes first.
+    if (mode === 'cpu' && ui.difficulty.value === 'impossible' && bossLaserAttack) {
+      const warning = !bossLaserAttack.fired;
+      ctx.save();
+      ctx.lineWidth = warning ? 3 : 2;
+      for (const y of bossLaserAttack.lanes) {
+        if (warning) {
+          ctx.strokeStyle = 'rgba(255,35,45,0.95)';
+          ctx.fillStyle = 'rgba(255,0,20,0.07)';
+          ctx.setLineDash([12, 7]);
+          ctx.fillRect(0, y - 10, W, 20);
+          ctx.strokeRect(2, y - 10, W - 4, 20);
+        } else {
+          ctx.setLineDash([]);
+          ctx.shadowColor = '#ff001e';
+          ctx.shadowBlur = 14;
+          ctx.fillStyle = '#ff1830';
+          ctx.fillRect(0, y - 7, W, 14);
+          ctx.fillStyle = '#fff0f0';
+          ctx.fillRect(0, y - 2, W, 4);
+        }
+      }
+      ctx.restore();
+    }
 
     // Smooth-moving square ball.
     ctx.save();
