@@ -1438,7 +1438,7 @@
           fired: false,
           hit: false
         };
-        playBossLaserSound();
+        // No sound during the hollow warning; the sound plays when the solid beams appear.
         nextBossLaser = 8 * 60;
       }
       if (bossLaserAttack) {
@@ -1446,6 +1446,7 @@
         // Warning lasts 54 frames (~0.9s); the solid laser volley lasts 15 frames.
         if (bossLaserAttack.age >= 54 && !bossLaserAttack.fired) {
           bossLaserAttack.fired = true;
+          playBossLaserSound();
           const playerTop = leftY;
           const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
           if (bossLaserAttack.lanes.some(y => y + 10 >= playerTop && y - 10 <= playerBottom)) {
@@ -1556,36 +1557,38 @@
       '#bdbdbd'
     );
 
-    // Final Boss laser warning and attack, drawn as chunky pixel-art blocks.
+    // Final Boss laser warning and attack, drawn as smooth continuous beams.
     if (mode === 'cpu' && ui.difficulty.value === 'impossible' && bossLaserAttack) {
       const warning = !bossLaserAttack.fired;
-      const blockW = 10;
       ctx.save();
-      ctx.imageSmoothingEnabled = false;
+      ctx.imageSmoothingEnabled = true;
       for (const y of bossLaserAttack.lanes) {
         if (warning) {
-          // Hollow, separated red pixel blocks telegraph the exact lane before firing.
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = 'rgba(255,35,45,0.98)';
-          ctx.fillStyle = 'rgba(255,0,20,0.06)';
-          for (let x = 2; x < W - 2; x += blockW + 3) {
-            const bw = Math.min(blockW, W - 2 - x);
-            ctx.fillRect(x, Math.round(y - 9), bw, 18);
-            ctx.strokeRect(x, Math.round(y - 9), bw, 18);
-          }
+          // Smooth hollow warning beam: the outline marks the lane without playing the sound.
+          const top = y - 8;
+          ctx.fillStyle = 'rgba(255, 0, 25, 0.10)';
+          ctx.fillRect(0, top, W, 16);
+          ctx.strokeStyle = 'rgba(255, 38, 54, 0.95)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(1, top + 1, W - 2, 14);
+          ctx.fillStyle = 'rgba(255, 45, 58, 0.45)';
+          ctx.fillRect(0, top + 1, W, 1);
+          ctx.fillRect(0, top + 14, W, 1);
         } else {
-          // Solid laser is built from individual red pixels with a broken white-hot core.
-          ctx.shadowColor = '#ff001e';
-          ctx.shadowBlur = 0;
-          for (let x = 0, i = 0; x < W; x += blockW, i++) {
-            const bw = Math.min(blockW, W - x);
-            ctx.fillStyle = i % 2 === 0 ? '#ff1830' : '#e90020';
-            ctx.fillRect(x, Math.round(y - 7), bw, 14);
-            if (i % 4 !== 1) {
-              ctx.fillStyle = '#fff0f0';
-              ctx.fillRect(x + 2, Math.round(y - 2), Math.max(2, bw - 4), 4);
-            }
-          }
+          // Continuous gradient beam with a bright core for a much less pixelated look.
+          const top = y - 10;
+          const beam = ctx.createLinearGradient(0, top, 0, top + 20);
+          beam.addColorStop(0, 'rgba(255, 0, 28, 0.78)');
+          beam.addColorStop(0.28, '#ff2038');
+          beam.addColorStop(0.5, '#fff5f6');
+          beam.addColorStop(0.68, '#ff243b');
+          beam.addColorStop(1, 'rgba(210, 0, 22, 0.88)');
+          ctx.fillStyle = beam;
+          ctx.fillRect(0, top, W, 20);
+          ctx.fillStyle = 'rgba(255, 0, 25, 0.24)';
+          ctx.fillRect(0, top - 4, W, 28);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+          ctx.fillRect(0, y - 1, W, 2);
         }
       }
       ctx.restore();
