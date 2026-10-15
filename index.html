@@ -1564,8 +1564,11 @@
       ctx.save();
       ctx.imageSmoothingEnabled = true;
       for (const y of bossLaserAttack.lanes) {
-        if (warning) {
-          // Smooth hollow warning beam: the outline marks the lane without playing the sound.
+        if (deploying) {
+          // Machines deploy first: no beam is visible or damaging yet.
+          continue;
+        } else if (warning) {
+          // Hollow warning beam only: it marks the lane without firing or playing the sound.
           const top = y - 8;
           ctx.fillStyle = 'rgba(255, 0, 25, 0.10)';
           ctx.fillRect(0, top, W, 16);
@@ -1575,8 +1578,8 @@
           ctx.fillStyle = 'rgba(255, 45, 58, 0.45)';
           ctx.fillRect(0, top + 1, W, 1);
           ctx.fillRect(0, top + 14, W, 1);
-        } else {
-          // Continuous gradient beam with a bright core for a much less pixelated look.
+        } else if (bossLaserAttack.fired) {
+          // Continuous solid beam appears only after the warning has finished firing.
           const top = y - 10;
           const beam = ctx.createLinearGradient(0, top, 0, top + 20);
           beam.addColorStop(0, 'rgba(255, 0, 28, 0.78)');
