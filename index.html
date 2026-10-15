@@ -1438,13 +1438,13 @@
           fired: false,
           hit: false
         };
-        // No sound during the hollow warning; the sound plays when the solid beams appear.
+        // The grey wall machines deploy first, then warn with hollow beams, then fire.
         nextBossLaser = 8 * 60;
       }
       if (bossLaserAttack) {
         bossLaserAttack.age += dt;
-        // Warning lasts 54 frames (~0.9s); the solid laser volley lasts 15 frames.
-        if (bossLaserAttack.age >= 54 && !bossLaserAttack.fired) {
+        // Machines deploy for 24 frames, warning beams show for 54 frames, then fire.
+        if (bossLaserAttack.age >= 78 && !bossLaserAttack.fired) {
           bossLaserAttack.fired = true;
           playBossLaserSound();
           const playerTop = leftY;
@@ -1455,7 +1455,7 @@
             bossLaserAttack.hit = true;
           }
         }
-        if (bossLaserAttack.age >= 69) bossLaserAttack = null;
+        if (bossLaserAttack.age >= 93) bossLaserAttack = null;
       }
     } else {
       nextBossShot = 12 * 60;
@@ -1559,7 +1559,8 @@
 
     // Final Boss laser warning and attack, drawn as smooth continuous beams.
     if (mode === 'cpu' && ui.difficulty.value === 'impossible' && bossLaserAttack) {
-      const warning = !bossLaserAttack.fired;
+      const deploying = bossLaserAttack.age < 24;
+      const warning = bossLaserAttack.age >= 24 && !bossLaserAttack.fired;
       ctx.save();
       ctx.imageSmoothingEnabled = true;
       for (const y of bossLaserAttack.lanes) {
@@ -1590,6 +1591,42 @@
           ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
           ctx.fillRect(0, y - 1, W, 2);
         }
+      }
+
+      // Three pixel-art grey laser machines slide out of the right wall first.
+      // Their barrels line up with the exact lanes used by the warning and real beams.
+      const deployProgress = Math.max(0, Math.min(1, bossLaserAttack.age / 24));
+      const machineX = W + 8 - deployProgress * 70;
+      for (const y of bossLaserAttack.lanes) {
+        const my = Math.round(y - 17);
+        const mx = Math.round(machineX);
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        // Dark mounting plate and blocky grey casing.
+        ctx.fillStyle = '#17191c';
+        ctx.fillRect(mx + 5, my - 4, 62, 42);
+        ctx.fillStyle = '#555b61';
+        ctx.fillRect(mx + 13, my, 48, 34);
+        ctx.fillStyle = '#8d949a';
+        ctx.fillRect(mx + 7, my + 4, 43, 25);
+        ctx.fillStyle = '#c0c5c9';
+        ctx.fillRect(mx + 13, my + 7, 25, 4);
+        ctx.fillStyle = '#33383d';
+        ctx.fillRect(mx + 15, my + 14, 32, 12);
+        // Barrel points left into the court.
+        ctx.fillStyle = '#24282c';
+        ctx.fillRect(mx - 7, my + 11, 25, 12);
+        ctx.fillStyle = '#aeb4b9';
+        ctx.fillRect(mx - 7, my + 11, 18, 4);
+        ctx.fillStyle = '#d7dadd';
+        ctx.fillRect(mx - 12, my + 13, 7, 8);
+        // Small red status light illuminates only after the machine has deployed.
+        ctx.fillStyle = (!deploying && !bossLaserAttack.fired) ? '#ff263b' : '#73797e';
+        ctx.fillRect(mx + 48, my + 6, 5, 5);
+        ctx.fillStyle = '#3d4247';
+        ctx.fillRect(mx + 18, my + 29, 6, 3);
+        ctx.fillRect(mx + 39, my + 29, 6, 3);
+        ctx.restore();
       }
       ctx.restore();
     }
