@@ -911,6 +911,9 @@
   let nextBossShot = 12 * 60;
   let nextBossLaser = (9 + Math.random() * 3) * 60;
   let bossLaserAttack = null;
+  // Hard Bot meteor: shadow telegraph first, then a pixel-art meteor crashes.
+  let hardMeteor = null;
+  let nextHardMeteor = (12 + Math.random() * 3) * 60;
   const POWER_DURATION = 600;
 
   function scheduleNextPowerUp() {
@@ -930,6 +933,8 @@
     nextBossShot = 12 * 60;
     nextBossLaser = (9 + Math.random() * 3) * 60;
     bossLaserAttack = null;
+    hardMeteor = null;
+    nextHardMeteor = (12 + Math.random() * 3) * 60;
     scheduleNextPowerUp();
   }
 
@@ -1378,6 +1383,36 @@
 
     updateBullets(dt);
 
+    const hardBotMode = mode === 'cpu' && ui.difficulty.value === 'hard';
+    if (hardBotMode) {
+      if (!hardMeteor) {
+        nextHardMeteor -= dt;
+        if (nextHardMeteor <= 0) {
+          hardMeteor = { age: 0, targetY: 55 + Math.random() * (H - 110), phase: 'warning' };
+        }
+      }
+      if (hardMeteor) {
+        hardMeteor.age += dt;
+        // 90 frames of shadow warning, then a quick falling/crash animation.
+        if (hardMeteor.age >= 90 && hardMeteor.phase === 'warning') hardMeteor.phase = 'falling';
+        if (hardMeteor.age >= 108 && hardMeteor.phase === 'falling') {
+          const playerTop = leftY;
+          const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
+          if (hardMeteor.targetY >= playerTop - 12 && hardMeteor.targetY <= playerBottom + 12) {
+            leftStunTimer = Math.max(leftStunTimer, 1.2 * 60);
+          }
+          hardMeteor.phase = 'impact';
+        }
+        if (hardMeteor.age >= 124) {
+          hardMeteor = null;
+          nextHardMeteor = (12 + Math.random() * 3) * 60;
+        }
+      }
+    } else {
+      hardMeteor = null;
+      nextHardMeteor = (12 + Math.random() * 3) * 60;
+    }
+
     ball.x += ball.vx * dt;
     ball.y += ball.vy * dt;
 
@@ -1536,6 +1571,47 @@
     ctx.stroke();
 
     ctx.restore();
+
+    // Hard Bot meteor attack: a dark landing shadow warns the player before impact.
+    if (mode === 'cpu' && ui.difficulty.value === 'hard' && hardMeteor) {
+      const mx = 118;
+      const my = hardMeteor.targetY;
+      ctx.save();
+      // Pixelated oval shadow remains visible during warning and the fall.
+      ctx.fillStyle = hardMeteor.phase === 'impact' ? 'rgba(255,80,35,0.45)' : 'rgba(220,220,220,0.24)';
+      ctx.fillRect(mx - 18, my - 5, 8, 10);
+      ctx.fillRect(mx - 10, my - 9, 20, 18);
+      ctx.fillRect(mx + 10, my - 5, 8, 10);
+      ctx.fillStyle = 'rgba(255,70,35,0.25)';
+      ctx.fillRect(mx - 12, my - 4, 24, 8);
+      if (hardMeteor.phase === 'falling') {
+        const fall = Math.max(0, Math.min(1, (hardMeteor.age - 90) / 18));
+        const meteorY = -70 + (my + 70) * fall;
+        // Pixel-art meteor: fiery tail plus a chunky rocky core.
+        ctx.fillStyle = '#a52a24';
+        ctx.fillRect(mx - 20, meteorY - 30, 12, 16);
+        ctx.fillRect(mx - 8, meteorY - 22, 16, 16);
+        ctx.fillRect(mx + 8, meteorY - 14, 16, 12);
+        ctx.fillStyle = '#ff6a24';
+        ctx.fillRect(mx - 12, meteorY - 24, 12, 16);
+        ctx.fillRect(mx, meteorY - 16, 16, 12);
+        ctx.fillStyle = '#ffd34e';
+        ctx.fillRect(mx - 4, meteorY - 18, 8, 12);
+        ctx.fillStyle = '#45434a';
+        ctx.fillRect(mx - 12, meteorY - 8, 24, 20);
+        ctx.fillRect(mx - 20, meteorY - 2, 8, 12);
+        ctx.fillRect(mx + 12, meteorY - 4, 8, 12);
+        ctx.fillStyle = '#77737b';
+        ctx.fillRect(mx - 4, meteorY - 4, 8, 8);
+        ctx.fillRect(mx + 4, meteorY + 4, 4, 4);
+      } else if (hardMeteor.phase === 'impact') {
+        ctx.fillStyle = 'rgba(255,90,30,0.6)';
+        ctx.fillRect(mx - 25, my - 18, 50, 36);
+        ctx.fillStyle = '#ffd34e';
+        ctx.fillRect(mx - 15, my - 10, 30, 20);
+      }
+      ctx.restore();
+    }
 
     drawRoundedRect(
       34,
