@@ -893,6 +893,7 @@
   let running = false;
   let paused = false;
   let gameOver = false;
+  let deathmatchTimer = 0; // Frames remaining in the 7-second DEATHMATCH announcement.
   let rallyHits = 0;
 
   // Power-ups are normally random; Final Boss mode spawns only two shotgun pickups every 15 seconds, with a two-shotgun ammo cap.
@@ -1019,6 +1020,7 @@
     running = true;
     paused = false;
     gameOver = false;
+    deathmatchTimer = 0;
 
     ui.pause.textContent = (onlineActive || mode === 'online') ? 'Online: No Pause' : 'Ⅱ Pause';
     ui.pause.disabled = !!(onlineActive || mode === 'online');
@@ -1086,6 +1088,7 @@
     }
 
     if (leftPoints === target - 1 && rightPoints === target - 1) {
+      deathmatchTimer = 7 * 60;
       ui.status.textContent = 'DEATHMATCH!';
       ui.status.style.color = '#ff3030';
       ui.status.style.fontWeight = '900';
@@ -1968,6 +1971,25 @@
       ctx.fillRect(b.x - 2, b.y - 6, 4, 12);
     }
 
+    // Large full-screen DEATHMATCH announcement; the rally resumes after 7 seconds.
+    if (deathmatchTimer > 0) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,.78)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#ff2020';
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = '#ff2424';
+      ctx.font = '900 86px system-ui, sans-serif';
+      ctx.fillText('DEATHMATCH!', W / 2, H / 2 - 10);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 22px system-ui, sans-serif';
+      ctx.fillText('GET READY', W / 2, H / 2 + 58);
+      ctx.restore();
+    }
+
     // Rally counter.
     ctx.fillStyle = 'rgba(218,225,255,.55)';
     ctx.font = '700 13px system-ui';
@@ -1981,7 +2003,14 @@
     const dt = Math.min((now - lastTime) / 16.667, 2);
     lastTime = now;
 
-    if (running && !paused && !gameOver) {
+    if (deathmatchTimer > 0) {
+      deathmatchTimer = Math.max(0, deathmatchTimer - dt);
+      if (deathmatchTimer === 0) {
+        ui.status.textContent = mode === 'cpu'
+          ? 'Deathmatch! Final point wins!'
+          : 'Deathmatch! Next point wins!';
+      }
+    } else if (running && !paused && !gameOver) {
       if (!onlineActive || onlineRole === 'player_one') update(dt);
     }
 
