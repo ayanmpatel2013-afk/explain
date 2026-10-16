@@ -1407,7 +1407,7 @@
             const playerTop = leftY;
             const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
             if (meteor.targetY >= playerTop - 24 && meteor.targetY <= playerBottom + 24) {
-              leftStunTimer = Math.max(leftStunTimer, 1.2 * 60);
+              leftStunTimer = 1.2 * 60;
             }
             meteor.phase = 'impact';
           }
@@ -1584,35 +1584,36 @@
     // Hard Bot meteor attack: two oversized pixel meteors with a longer landing warning.
     if (mode === 'cpu' && ui.difficulty.value === 'hard' && hardMeteors.length) {
       for (const meteor of hardMeteors) {
-        const mx = 118;
+        const mx = 48; // Land directly on the left paddle line, not out in front of it.
         const my = meteor.targetY;
         ctx.save();
-        ctx.fillStyle = meteor.phase === 'impact' ? 'rgba(255,80,35,0.5)' : 'rgba(220,220,220,0.28)';
-        ctx.fillRect(mx - 34, my - 10, 14, 20);
-        ctx.fillRect(mx - 20, my - 16, 40, 32);
-        ctx.fillRect(mx + 20, my - 10, 14, 20);
-        ctx.fillStyle = 'rgba(255,70,35,0.32)';
-        ctx.fillRect(mx - 26, my - 7, 52, 14);
+        ctx.fillStyle = meteor.phase === 'impact' ? 'rgba(155,160,168,0.58)' : 'rgba(155,160,168,0.52)';
+        // Broad grey landing shadow, clearly visible against the dark court.
+        ctx.fillRect(mx - 48, my - 18, 20, 36);
+        ctx.fillRect(mx - 30, my - 28, 60, 56);
+        ctx.fillRect(mx + 28, my - 18, 20, 36);
+        ctx.fillStyle = 'rgba(90,96,104,0.55)';
+        ctx.fillRect(mx - 38, my - 12, 76, 24);
         if (meteor.phase === 'falling') {
           const fall = Math.max(0, Math.min(1, (meteor.age - 150) / 30));
           const meteorY = -110 + (my + 110) * fall;
-          // Approximately twice the original size, with chunky pixel-art flame and rock.
+          // Much larger pixel-art meteor, with a chunky flame tail and rocky core.
           ctx.fillStyle = '#a52a24';
-          ctx.fillRect(mx - 40, meteorY - 60, 24, 32);
-          ctx.fillRect(mx - 16, meteorY - 44, 32, 32);
-          ctx.fillRect(mx + 16, meteorY - 28, 24, 24);
+          ctx.fillRect(mx - 60, meteorY - 90, 36, 48);
+          ctx.fillRect(mx - 24, meteorY - 66, 48, 48);
+          ctx.fillRect(mx + 24, meteorY - 42, 36, 36);
           ctx.fillStyle = '#ff6a24';
-          ctx.fillRect(mx - 24, meteorY - 48, 24, 32);
-          ctx.fillRect(mx, meteorY - 32, 32, 24);
+          ctx.fillRect(mx - 36, meteorY - 72, 36, 48);
+          ctx.fillRect(mx, meteorY - 48, 48, 36);
           ctx.fillStyle = '#ffd34e';
-          ctx.fillRect(mx - 8, meteorY - 36, 16, 24);
+          ctx.fillRect(mx - 12, meteorY - 54, 24, 36);
           ctx.fillStyle = '#45434a';
-          ctx.fillRect(mx - 24, meteorY - 16, 48, 40);
-          ctx.fillRect(mx - 40, meteorY - 4, 16, 24);
-          ctx.fillRect(mx + 24, meteorY - 8, 16, 24);
+          ctx.fillRect(mx - 36, meteorY - 24, 72, 60);
+          ctx.fillRect(mx - 60, meteorY - 6, 24, 36);
+          ctx.fillRect(mx + 36, meteorY - 12, 24, 36);
           ctx.fillStyle = '#77737b';
-          ctx.fillRect(mx - 8, meteorY - 8, 16, 16);
-          ctx.fillRect(mx + 8, meteorY + 8, 8, 8);
+          ctx.fillRect(mx - 12, meteorY - 12, 24, 24);
+          ctx.fillRect(mx + 12, meteorY + 12, 12, 12);
         } else if (meteor.phase === 'impact') {
           ctx.fillStyle = 'rgba(255,90,30,0.65)';
           ctx.fillRect(mx - 50, my - 36, 100, 72);
