@@ -1085,11 +1085,21 @@
       return;
     }
 
-    ui.status.textContent = `${
-      side === 'left'
-        ? 'Player 1'
-        : (mode === 'cpu' ? 'Computer' : 'Player 2')
-    } scored!`;
+    if (leftPoints === target - 1 && rightPoints === target - 1) {
+      ui.status.textContent = 'DEATHMATCH!';
+      ui.status.style.color = '#ff3030';
+      ui.status.style.fontWeight = '900';
+      ui.status.style.textShadow = '0 0 8px rgba(255, 35, 35, .65)';
+    } else {
+      ui.status.textContent = `${
+        side === 'left'
+          ? 'Player 1'
+          : (mode === 'cpu' ? 'Computer' : 'Player 2')
+      } scored!`;
+      ui.status.style.color = '';
+      ui.status.style.fontWeight = '';
+      ui.status.style.textShadow = '';
+    }
 
     resetBall(side === 'left' ? 1 : -1);
   }
