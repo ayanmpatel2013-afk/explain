@@ -1703,10 +1703,29 @@
           ctx.ellipse(mx + 14, meteorY - 8, 8, 6, -0.35, 0, Math.PI * 2);
           ctx.fill();
         } else if (meteor.phase === 'impact') {
-          ctx.fillStyle = 'rgba(255,90,30,0.65)';
-          ctx.fillRect(mx - 50, my - 36, 100, 72);
+          // Pixel-art impact burst: stepped, uneven red/orange pixels instead of two large squares.
+          ctx.fillStyle = 'rgba(255,54,24,0.72)';
+          ctx.fillRect(mx - 28, my - 24, 16, 8);
+          ctx.fillRect(mx - 36, my - 16, 12, 16);
+          ctx.fillRect(mx - 24, my - 8, 16, 20);
+          ctx.fillRect(mx - 8, my - 28, 16, 12);
+          ctx.fillRect(mx + 8, my - 20, 16, 12);
+          ctx.fillRect(mx + 20, my - 8, 12, 16);
+          ctx.fillRect(mx + 8, my + 8, 16, 12);
+          ctx.fillRect(mx - 12, my + 12, 20, 8);
+          ctx.fillRect(mx - 32, my + 4, 12, 12);
+
+          ctx.fillStyle = 'rgba(255,119,30,0.92)';
+          ctx.fillRect(mx - 16, my - 16, 12, 12);
+          ctx.fillRect(mx - 4, my - 24, 12, 12);
+          ctx.fillRect(mx + 8, my - 8, 12, 12);
+          ctx.fillRect(mx - 4, my + 4, 16, 12);
+          ctx.fillRect(mx - 20, my, 12, 8);
+
           ctx.fillStyle = '#ffd34e';
-          ctx.fillRect(mx - 30, my - 20, 60, 40);
+          ctx.fillRect(mx - 4, my - 12, 8, 8);
+          ctx.fillRect(mx + 4, my - 4, 8, 8);
+          ctx.fillRect(mx - 8, my, 8, 8);
         }
         ctx.restore();
       }
