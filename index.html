@@ -893,7 +893,7 @@
   let running = false;
   let paused = false;
   let gameOver = false;
-  let deathmatchTimer = 0; // Frames remaining in the 7-second DEATHMATCH announcement.
+  let deathmatchTimer = 0; // Frames remaining in the 5-second DEATHMATCH announcement.
   let rallyHits = 0;
 
   // Power-ups are normally random; Final Boss mode spawns only two shotgun pickups every 15 seconds, with a two-shotgun ammo cap.
@@ -1088,7 +1088,7 @@
     }
 
     if (leftPoints === target - 1 && rightPoints === target - 1) {
-      deathmatchTimer = 7 * 60;
+      deathmatchTimer = 5 * 60;
       ui.status.textContent = 'DEATHMATCH!';
       ui.status.style.color = '#ff3030';
       ui.status.style.fontWeight = '900';
@@ -1971,7 +1971,7 @@
       ctx.fillRect(b.x - 2, b.y - 6, 4, 12);
     }
 
-    // Large full-screen DEATHMATCH announcement; the rally resumes after 7 seconds.
+    // Large full-screen DEATHMATCH announcement; the rally resumes after 5 seconds.
     if (deathmatchTimer > 0) {
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,.78)';
