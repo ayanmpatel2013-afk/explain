@@ -1401,9 +1401,9 @@
       if (hardMeteors.length) {
         for (const meteor of hardMeteors) {
           meteor.age += dt;
-          // 150 frames (~2.5 seconds) of warning, then a slower fall.
+          // Keep the 2.5-second warning, then make the meteor crash down quickly (18 frames).
           if (meteor.age >= 150 && meteor.phase === 'warning') meteor.phase = 'falling';
-          if (meteor.age >= 180 && meteor.phase === 'falling') {
+          if (meteor.age >= 168 && meteor.phase === 'falling') {
             const playerTop = leftY;
             const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
             if (meteor.targetY >= playerTop - 24 && meteor.targetY <= playerBottom + 24) {
@@ -1412,7 +1412,7 @@
             meteor.phase = 'impact';
           }
         }
-        if (hardMeteors.every(meteor => meteor.age >= 198)) {
+        if (hardMeteors.every(meteor => meteor.age >= 186)) {
           hardMeteors = [];
           nextHardMeteor = (12 + Math.random() * 3) * 60;
         }
@@ -1595,25 +1595,84 @@
         ctx.fillStyle = 'rgba(90,96,104,0.55)';
         ctx.fillRect(mx - 38, my - 12, 76, 24);
         if (meteor.phase === 'falling') {
-          const fall = Math.max(0, Math.min(1, (meteor.age - 150) / 30));
+          const fall = Math.max(0, Math.min(1, (meteor.age - 150) / 18));
           const meteorY = -110 + (my + 110) * fall;
-          // Much larger pixel-art meteor, with a chunky flame tail and rocky core.
-          ctx.fillStyle = '#a52a24';
-          ctx.fillRect(mx - 60, meteorY - 90, 36, 48);
-          ctx.fillRect(mx - 24, meteorY - 66, 48, 48);
-          ctx.fillRect(mx + 24, meteorY - 42, 36, 36);
-          ctx.fillStyle = '#ff6a24';
-          ctx.fillRect(mx - 36, meteorY - 72, 36, 48);
-          ctx.fillRect(mx, meteorY - 48, 48, 36);
-          ctx.fillStyle = '#ffd34e';
-          ctx.fillRect(mx - 12, meteorY - 54, 24, 36);
-          ctx.fillStyle = '#45434a';
-          ctx.fillRect(mx - 36, meteorY - 24, 72, 60);
-          ctx.fillRect(mx - 60, meteorY - 6, 24, 36);
-          ctx.fillRect(mx + 36, meteorY - 12, 24, 36);
-          ctx.fillStyle = '#77737b';
-          ctx.fillRect(mx - 12, meteorY - 12, 24, 24);
-          ctx.fillRect(mx + 12, meteorY + 12, 12, 12);
+          // A slightly smoother, more realistic molten rock: layered gradients,
+          // irregular rocky edges, and a bright tapered flame trail.
+          const flame = ctx.createLinearGradient(mx, meteorY - 108, mx, meteorY + 12);
+          flame.addColorStop(0, 'rgba(255,65,20,0)');
+          flame.addColorStop(0.32, 'rgba(255,75,20,0.78)');
+          flame.addColorStop(0.72, 'rgba(255,175,35,0.95)');
+          flame.addColorStop(1, 'rgba(255,235,135,0.98)');
+          ctx.fillStyle = flame;
+          ctx.beginPath();
+          ctx.moveTo(mx - 38, meteorY - 8);
+          ctx.lineTo(mx - 26, meteorY - 74);
+          ctx.lineTo(mx - 9, meteorY - 108);
+          ctx.lineTo(mx + 10, meteorY - 79);
+          ctx.lineTo(mx + 35, meteorY - 20);
+          ctx.closePath();
+          ctx.fill();
+
+          const glow = ctx.createRadialGradient(mx, meteorY - 4, 8, mx, meteorY - 4, 72);
+          glow.addColorStop(0, 'rgba(255,210,105,0.75)');
+          glow.addColorStop(0.48, 'rgba(255,90,28,0.36)');
+          glow.addColorStop(1, 'rgba(255,50,15,0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(mx, meteorY - 4, 72, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Uneven silhouette keeps the chunky arcade look without looking block-built.
+          ctx.fillStyle = '#302e35';
+          ctx.beginPath();
+          ctx.moveTo(mx - 39, meteorY - 26);
+          ctx.lineTo(mx - 43, meteorY - 43);
+          ctx.lineTo(mx - 25, meteorY - 57);
+          ctx.lineTo(mx - 8, meteorY - 52);
+          ctx.lineTo(mx + 9, meteorY - 61);
+          ctx.lineTo(mx + 31, meteorY - 44);
+          ctx.lineTo(mx + 42, meteorY - 20);
+          ctx.lineTo(mx + 29, meteorY + 7);
+          ctx.lineTo(mx + 7, meteorY + 20);
+          ctx.lineTo(mx - 20, meteorY + 15);
+          ctx.lineTo(mx - 40, meteorY - 2);
+          ctx.closePath();
+          ctx.fill();
+
+          const rock = ctx.createLinearGradient(mx - 30, meteorY - 50, mx + 28, meteorY + 18);
+          rock.addColorStop(0, '#aaa0a0');
+          rock.addColorStop(0.28, '#71676b');
+          rock.addColorStop(0.65, '#51464b');
+          rock.addColorStop(1, '#29272d');
+          ctx.fillStyle = rock;
+          ctx.beginPath();
+          ctx.moveTo(mx - 30, meteorY - 25);
+          ctx.lineTo(mx - 31, meteorY - 41);
+          ctx.lineTo(mx - 12, meteorY - 50);
+          ctx.lineTo(mx + 5, meteorY - 44);
+          ctx.lineTo(mx + 24, meteorY - 35);
+          ctx.lineTo(mx + 33, meteorY - 15);
+          ctx.lineTo(mx + 23, meteorY + 3);
+          ctx.lineTo(mx + 4, meteorY + 12);
+          ctx.lineTo(mx - 18, meteorY + 7);
+          ctx.lineTo(mx - 32, meteorY - 7);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = '#d2b1a0';
+          ctx.beginPath();
+          ctx.moveTo(mx - 20, meteorY - 34);
+          ctx.lineTo(mx - 8, meteorY - 43);
+          ctx.lineTo(mx + 3, meteorY - 36);
+          ctx.lineTo(mx - 3, meteorY - 22);
+          ctx.lineTo(mx - 18, meteorY - 19);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = '#3c3439';
+          ctx.beginPath();
+          ctx.ellipse(mx + 14, meteorY - 8, 8, 6, -0.35, 0, Math.PI * 2);
+          ctx.fill();
         } else if (meteor.phase === 'impact') {
           ctx.fillStyle = 'rgba(255,90,30,0.65)';
           ctx.fillRect(mx - 50, my - 36, 100, 72);
