@@ -1587,22 +1587,30 @@
         const mx = 48; // Land directly on the left paddle line, not out in front of it.
         const my = meteor.targetY;
         ctx.save();
-        // Realistic landing shadow: soft, elliptical contact shadow with a faint crater rim.
-        // A radial gradient gives it a natural falloff instead of a blocky grey marker.
-        const shadow = ctx.createRadialGradient(mx, my, 3, mx, my, 61);
-        shadow.addColorStop(0, meteor.phase === 'impact' ? 'rgba(18,20,24,0.88)' : 'rgba(35,38,43,0.78)');
-        shadow.addColorStop(0.42, 'rgba(45,49,55,0.58)');
-        shadow.addColorStop(0.76, 'rgba(100,106,114,0.28)');
-        shadow.addColorStop(1, 'rgba(125,132,140,0)');
-        ctx.fillStyle = shadow;
-        ctx.beginPath();
-        ctx.ellipse(mx, my, 61, 28, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(155,161,169,0.22)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.ellipse(mx, my, 43, 17, 0, 0, Math.PI * 2);
-        ctx.stroke();
+        // More pixelated realistic landing shadow: stepped oval layers with a darker center
+        // and a broken, lighter pixel rim, so it still reads like a crater rather than a flat blob.
+        const shadowDark = meteor.phase === 'impact' ? 'rgba(18,20,24,0.88)' : 'rgba(35,38,43,0.78)';
+        ctx.fillStyle = 'rgba(125,132,140,0.18)';
+        ctx.fillRect(mx - 52, my - 12, 104, 24);
+        ctx.fillRect(mx - 44, my - 18, 88, 36);
+        ctx.fillRect(mx - 32, my - 23, 64, 46);
+        ctx.fillStyle = 'rgba(100,106,114,0.28)';
+        ctx.fillRect(mx - 44, my - 10, 88, 20);
+        ctx.fillRect(mx - 36, my - 16, 72, 32);
+        ctx.fillRect(mx - 24, my - 20, 48, 40);
+        ctx.fillStyle = 'rgba(45,49,55,0.58)';
+        ctx.fillRect(mx - 32, my - 8, 64, 16);
+        ctx.fillRect(mx - 24, my - 13, 48, 26);
+        ctx.fillStyle = shadowDark;
+        ctx.fillRect(mx - 18, my - 8, 36, 16);
+        // Small broken highlights give the pixelated crater rim a little texture.
+        ctx.fillStyle = 'rgba(175,181,188,0.28)';
+        ctx.fillRect(mx - 36, my - 18, 12, 4);
+        ctx.fillRect(mx + 20, my - 20, 12, 4);
+        ctx.fillRect(mx - 48, my - 6, 4, 8);
+        ctx.fillRect(mx + 44, my + 4, 4, 8);
+        ctx.fillStyle = 'rgba(10,12,15,0.22)';
+        ctx.fillRect(mx - 28, my + 13, 56, 4);
         if (meteor.phase === 'falling') {
           const fall = Math.max(0, Math.min(1, (meteor.age - 150) / 10));
           const meteorY = -110 + (my + 110) * fall;
