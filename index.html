@@ -1401,9 +1401,9 @@
       if (hardMeteors.length) {
         for (const meteor of hardMeteors) {
           meteor.age += dt;
-          // Keep the 2.5-second warning, then make the meteor crash down quickly (18 frames).
+          // Keep the 2.5-second warning, then make the meteor crash down very quickly (10 frames).
           if (meteor.age >= 150 && meteor.phase === 'warning') meteor.phase = 'falling';
-          if (meteor.age >= 168 && meteor.phase === 'falling') {
+          if (meteor.age >= 160 && meteor.phase === 'falling') {
             const playerTop = leftY;
             const playerBottom = leftY + (leftPowerTimer > 0 ? 150 : 108);
             if (meteor.targetY >= playerTop - 24 && meteor.targetY <= playerBottom + 24) {
@@ -1412,7 +1412,7 @@
             meteor.phase = 'impact';
           }
         }
-        if (hardMeteors.every(meteor => meteor.age >= 186)) {
+        if (hardMeteors.every(meteor => meteor.age >= 178)) {
           hardMeteors = [];
           nextHardMeteor = (12 + Math.random() * 3) * 60;
         }
@@ -1587,15 +1587,24 @@
         const mx = 48; // Land directly on the left paddle line, not out in front of it.
         const my = meteor.targetY;
         ctx.save();
-        ctx.fillStyle = meteor.phase === 'impact' ? 'rgba(155,160,168,0.58)' : 'rgba(155,160,168,0.52)';
-        // Broad grey landing shadow, clearly visible against the dark court.
-        ctx.fillRect(mx - 48, my - 18, 20, 36);
-        ctx.fillRect(mx - 30, my - 28, 60, 56);
-        ctx.fillRect(mx + 28, my - 18, 20, 36);
-        ctx.fillStyle = 'rgba(90,96,104,0.55)';
-        ctx.fillRect(mx - 38, my - 12, 76, 24);
+        // Realistic landing shadow: soft, elliptical contact shadow with a faint crater rim.
+        // A radial gradient gives it a natural falloff instead of a blocky grey marker.
+        const shadow = ctx.createRadialGradient(mx, my, 3, mx, my, 61);
+        shadow.addColorStop(0, meteor.phase === 'impact' ? 'rgba(18,20,24,0.88)' : 'rgba(35,38,43,0.78)');
+        shadow.addColorStop(0.42, 'rgba(45,49,55,0.58)');
+        shadow.addColorStop(0.76, 'rgba(100,106,114,0.28)');
+        shadow.addColorStop(1, 'rgba(125,132,140,0)');
+        ctx.fillStyle = shadow;
+        ctx.beginPath();
+        ctx.ellipse(mx, my, 61, 28, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(155,161,169,0.22)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(mx, my, 43, 17, 0, 0, Math.PI * 2);
+        ctx.stroke();
         if (meteor.phase === 'falling') {
-          const fall = Math.max(0, Math.min(1, (meteor.age - 150) / 18));
+          const fall = Math.max(0, Math.min(1, (meteor.age - 150) / 10));
           const meteorY = -110 + (my + 110) * fall;
           // A slightly smoother, more realistic molten rock: layered gradients,
           // irregular rocky edges, and a bright tapered flame trail.
