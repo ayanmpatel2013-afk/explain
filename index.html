@@ -909,7 +909,7 @@
   // In local two-player mode, alternate pickup sides so both players get fair chances.
   let nextLocalPowerUpSide = 'left';
   let nextBossShot = 12 * 60;
-  let nextBossLaser = 8 * 60;
+  let nextBossLaser = (9 + Math.random() * 3) * 60;
   let bossLaserAttack = null;
   const POWER_DURATION = 600;
 
@@ -928,7 +928,7 @@
     bullets = [];
     shotgunEffect = null;
     nextBossShot = 12 * 60;
-    nextBossLaser = 8 * 60;
+    nextBossLaser = (9 + Math.random() * 3) * 60;
     bossLaserAttack = null;
     scheduleNextPowerUp();
   }
@@ -1439,7 +1439,7 @@
           hit: false
         };
         // The grey wall machines deploy first, then warn with hollow beams, then fire.
-        nextBossLaser = 8 * 60;
+        nextBossLaser = (9 + Math.random() * 3) * 60;
       }
       if (bossLaserAttack) {
         bossLaserAttack.age += dt;
