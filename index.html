@@ -31,7 +31,21 @@
     padding: 22px;
   }
 
-  .app { width: min(100%, 1000px); }
+  .app { width: min(100%, 1000px); position: relative; }
+
+  .coin-display {
+    position: absolute; top: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border: 2px solid #777; background: #111;
+    color: #fff; font-weight: 800; box-shadow: 3px 3px 0 #333;
+    font-size: .95rem;
+  }
+  .coin-icon { font-size: 1.2rem; }
+  #coinCount { min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+  @media (max-width: 620px) {
+    .coin-display { position: static; width: fit-content; margin: 0 0 12px auto; }
+    header { padding-top: 0; }
+  }
 
   header {
     text-align: center;
@@ -323,6 +337,7 @@
 </head>
 <body>
 <main class="app">
+  <div class="coin-display" aria-label="Your coins"><span class="coin-icon">🪙</span><span>COINS</span><span id="coinCount">0</span></div>
   <header>
     <div class="eyebrow">Retro • Neon • Arcade</div>
     <h1>ILLEGAL <span>PONG</span></h1>
@@ -927,6 +942,38 @@
   let running = false;
   let paused = false;
   let gameOver = false;
+
+  // Coins persist on this device/browser between visits.
+  const COIN_STORAGE_KEY = 'illegalPongCoinsV1';
+  let coins = 0;
+  try { coins = Math.max(0, Number(localStorage.getItem(COIN_STORAGE_KEY)) || 0); } catch (_) {}
+  const coinCountEl = document.getElementById('coinCount');
+  function updateCoinDisplay() {
+    if (coinCountEl) coinCountEl.textContent = String(coins);
+  }
+  function addCoinsForWin() {
+    // Coins are earned only when Player 1 defeats a CPU bot, not in local or online matches.
+    if (mode !== 'cpu' || leftPoints <= rightPoints) return 0;
+    const difficulty = ui.difficulty.value;
+    const target = difficulty === 'impossible' ? 3 : Number(ui.winScore.value);
+    let reward = 0;
+    if (difficulty === 'easy') {
+      reward = target === 3 ? 0 : (target === 5 || target === 7 ? 3 : 5);
+    } else if (difficulty === 'medium') {
+      reward = target === 3 ? 0 : target === 5 ? 3 : target === 7 ? 6 : 9;
+    } else if (difficulty === 'hard') {
+      reward = target === 3 ? 3 : target === 5 ? 5 : target === 7 ? 7 : target === 10 ? 10 : 15;
+    } else if (difficulty === 'impossible') {
+      reward = 90;
+    }
+    if (reward > 0) {
+      coins += reward;
+      try { localStorage.setItem(COIN_STORAGE_KEY, String(coins)); } catch (_) {}
+      updateCoinDisplay();
+    }
+    return reward;
+  }
+  updateCoinDisplay();
   let deathmatchTimer = 0; // Frames remaining in the 5-second DEATHMATCH announcement.
   let deathmatchBreakTimer = 0; // Brief glass-shatter intro before the announcement.
   let deathmatchGlassShards = [];
@@ -1095,10 +1142,12 @@
     running = false;
     paused = false;
     gameOver = true;
+    const coinReward = winner === 'Player 1' ? addCoinsForWin() : 0;
+    const rewardText = coinReward > 0 ? ` You earned ${coinReward} coins!` : '';
 
     showOverlay(
       `${winner} wins! 🎉`,
-      `Final score: ${leftPoints} — ${rightPoints}. Fancy a rematch?`,
+      `Final score: ${leftPoints} — ${rightPoints}.${rewardText} Fancy a rematch?`,
       '↻ Play Again'
     );
 
