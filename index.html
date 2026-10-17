@@ -360,7 +360,8 @@
       <div id="musicStatus" aria-live="polite">Music One is selected. Press Play Music to start Lift Jam.</div>
       <hr style="border:0;border-top:1px solid #555;margin:16px 0">
       <h3 style="margin:0 0 8px">🎩 Paddle Accessories</h3>
-      <p>Choose an accessory for each paddle. The Laggy Paddle deliberately makes that paddle extremely delayed and stuttery!</p>
+      <p>Locked accessories are grey. Press the small purchase button beside an accessory to unlock it for 35 coins, then equip it on either paddle.</p>
+      <div id="accessoryShopList" style="display:grid;gap:7px;margin:10px 0 16px"></div>
       <label for="leftAccessory">Left paddle accessory</label>
       <select id="leftAccessory" style="display:block;width:100%;max-width:560px;margin:6px 0 12px">
         <option value="none">None</option>
@@ -381,7 +382,7 @@
         <option value="smiley">Black Smiley Face</option>
         <option value="yellowNikes">Yellow Nikes</option>
       </select>
-      <p id="accessoryShopStatus" role="status" aria-live="polite" style="color:#ddd;margin:8px 0 0">Each accessory costs 35 coins. Select a locked accessory to purchase it; once bought, you can use it on either paddle.</p>
+      <p id="accessoryShopStatus" role="status" aria-live="polite" style="color:#ddd;margin:8px 0 0">Each accessory costs 35 coins. Press the purchase button beside a locked accessory. Once bought, you can use it on either paddle.</p>
       <audio id="musicAudio" preload="none" loop style="display:block;width:100%;max-width:560px;margin-top:12px">
         <source src="https://doors-but-bad.fandom.com/wiki/Special:Redirect/file/Lift_ReJam.mp3" type="audio/mpeg">
       </audio>
@@ -981,33 +982,59 @@
       Array.from(select.options).forEach(option => {
         const key = option.value;
         if (!ACCESSORIES[key]) return;
+        option.disabled = !ownedAccessories[key];
         option.textContent = ownedAccessories[key]
           ? ACCESSORIES[key] + ' (Owned)'
-          : ACCESSORIES[key] + ' — ' + ACCESSORY_COST + ' coins';
+          : '🔒 ' + ACCESSORIES[key] + ' — locked';
       });
     });
+    const shop = document.getElementById('accessoryShopList');
+    if (shop) {
+      shop.innerHTML = '';
+      Object.entries(ACCESSORIES).forEach(([key, name]) => {
+        const owned = !!ownedAccessories[key];
+        const row = document.createElement('div');
+        row.style.cssText = `display:flex;align-items:center;gap:10px;padding:8px 9px;border:1px solid ${owned ? '#666' : '#444'};border-radius:7px;background:${owned ? '#181818' : '#303030'};color:${owned ? '#eee' : '#999'};`;
+        const label = document.createElement('div');
+        label.style.cssText = `flex:1;min-width:0;font-size:13px;${owned ? '' : 'filter:grayscale(1);opacity:.78;'}`;
+        label.textContent = (owned ? '✓ ' : '🔒 ') + name;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.style.cssText = 'font-size:11px;padding:5px 8px;min-width:82px;white-space:nowrap;';
+        button.textContent = owned ? 'OWNED' : `BUY · ${ACCESSORY_COST} 🪙`;
+        button.disabled = owned;
+        if (owned) button.style.opacity = '.55';
+        button.addEventListener('click', () => purchaseAccessory(key));
+        row.append(label, button);
+        shop.appendChild(row);
+      });
+    }
+  }
+  function purchaseAccessory(key) {
+    if (!ACCESSORIES[key] || ownedAccessories[key]) return;
+    if (coins < ACCESSORY_COST) {
+      if (accessoryShopStatus) accessoryShopStatus.textContent = `Not enough coins! ${ACCESSORIES[key]} costs ${ACCESSORY_COST} coins; you have ${coins}.`;
+      return;
+    }
+    coins -= ACCESSORY_COST;
+    ownedAccessories[key] = true;
+    saveOwnedAccessories();
+    try { localStorage.setItem(COIN_STORAGE_KEY, String(coins)); } catch (_) {}
+    updateCoinDisplay();
+    refreshAccessoryOptions();
+    if (accessoryShopStatus) accessoryShopStatus.textContent = `Unlocked ${ACCESSORIES[key]}! It is now available for either paddle. Choose it from a paddle's accessory menu to equip it.`;
   }
   function handleAccessorySelection(side, select) {
     if (!select) return;
     const choice = select.value;
     if (choice !== 'none' && !ownedAccessories[choice]) {
-      if (coins < ACCESSORY_COST) {
-        select.value = equippedAccessory[side] || 'none';
-        if (accessoryShopStatus) accessoryShopStatus.textContent = `Not enough coins! ${ACCESSORIES[choice]} costs ${ACCESSORY_COST} coins; you have ${coins}.`;
-        return;
-      }
-      coins -= ACCESSORY_COST;
-      ownedAccessories[choice] = true;
-      saveOwnedAccessories();
-      try { localStorage.setItem(COIN_STORAGE_KEY, String(coins)); } catch (_) {}
-      updateCoinDisplay();
-      refreshAccessoryOptions();
-      if (accessoryShopStatus) accessoryShopStatus.textContent = `Purchased ${ACCESSORIES[choice]} for ${ACCESSORY_COST} coins! You can now equip it on either paddle.`;
-    } else if (choice !== 'none' && accessoryShopStatus) {
-      accessoryShopStatus.textContent = `${ACCESSORIES[choice]} is equipped on the ${side} paddle.`;
-    } else if (accessoryShopStatus) {
-      accessoryShopStatus.textContent = 'Each accessory costs 35 coins. Owned accessories can be equipped on either paddle.';
+      select.value = equippedAccessory[side] || 'none';
+      if (accessoryShopStatus) accessoryShopStatus.textContent = `🔒 ${ACCESSORIES[choice]} is locked. Press its BUY button first.`;
+      return;
     }
+    if (accessoryShopStatus) accessoryShopStatus.textContent = choice !== 'none'
+      ? `${ACCESSORIES[choice]} is equipped on the ${side} paddle.`
+      : 'Choose an unlocked accessory, or press BUY beside a grey locked accessory to purchase it.';
     equippedAccessory[side] = choice;
   }
   if (leftAccessory) leftAccessory.addEventListener('change', () => handleAccessorySelection('left', leftAccessory));
